@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // TEMPORARY: Allow all access to unblock the application
+    // We will tighten this once standard Authentication is implemented or logic is verified
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
