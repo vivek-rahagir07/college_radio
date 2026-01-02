@@ -1205,7 +1205,7 @@ const RightSidebar = ({ users, followedClubs, onFollow, onUnfollow, onChat }) =>
                                         </div>
                                         <div className="leading-tight">
                                             <p className="font-black text-sm text-slate-800 truncate w-24 font-outfit tracking-tight group-hover/user:text-indigo-600 transition-colors">{user.username}</p>
-                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest truncate w-24 font-outfit">{user.fullName.split(' ')[0]}</p>
+                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest truncate w-24 font-outfit">{(user.fullName || user.username || 'User').split(' ')[0]}</p>
                                         </div>
                                     </div>
                                     <button onClick={() => onFollow(user.id)} className="w-9 h-9 flex items-center justify-center bg-slate-100 text-slate-900 rounded-xl hover:bg-slate-900 hover:text-white hover:scale-110 active:scale-95 transition-all shadow-sm"><Plus size={18} /></button>
@@ -1303,7 +1303,7 @@ function App() {
     const handleLogin = (userData) => {
         setIsAuthenticated(true);
         setCurrentUser({
-            username: userData.username || userData.email.split('@')[0],
+            username: userData.username || (userData.email ? userData.email.split('@')[0] : 'user'),
             fullName: userData.fullName || userData.username || 'Student',
             email: userData.email,
             avatar: userData.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop',
