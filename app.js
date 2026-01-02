@@ -377,66 +377,11 @@ const RadioPlayer = ({ isPlaying, onToggle, currentShow, rjName, volume, onVolum
     );
 };
 
-const StoryBar = ({ stories, isAdmin, onAddStory, onOpenStory, users, currentUser }) => {
-    const [showUpload, setShowUpload] = useState(false);
-    const [selectedClubId, setSelectedClubId] = useState('');
-    const [momentText, setMomentText] = useState('');
-    const [mediaFile, setMediaFile] = useState(null);
-    const [mediaPreview, setMediaPreview] = useState(null);
-    const [activeMimeType, setActiveMimeType] = useState('image/*,video/*,audio/*');
-    const [storyType, setStoryType] = useState('text'); // 'text', 'image', 'video', 'audio'
-    const fileInputRef = useRef(null);
-
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setMediaFile(file);
-                setMediaPreview(reader.result);
-                if (file.type.startsWith('video')) setStoryType('video');
-                else if (file.type.startsWith('audio')) setStoryType('audio');
-                else setStoryType('image');
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const triggerFilePicker = (type) => {
-        setActiveMimeType(type);
-        setTimeout(() => fileInputRef.current?.click(), 10);
-    };
-
-    const handleUpload = (e) => {
-        e.preventDefault();
-
-        let postingUser = isAdmin ? users.find(u => u.id === selectedClubId) : currentUser;
-        if (!postingUser) return;
-
-        onAddStory({
-            id: Date.now(),
-            clubId: postingUser.id || postingUser.username,
-            username: postingUser.username,
-            avatar: postingUser.avatar,
-            moment: momentText || (storyType === 'text' ? "Just keeping the pulse alive! ✨" : ""),
-            media: mediaPreview,
-            type: storyType,
-            timestamp: Date.now()
-        });
-
-        // Reset
-        setShowUpload(false);
-        setMomentText('');
-        setMediaFile(null);
-        setMediaPreview(null);
-        setStoryType('text');
-        setSelectedClubId('');
-    };
-
+const StoryBar = ({ stories, isAdmin, onOpenStudio, onOpenStory }) => {
     return (
         <div className="bg-white/90 backdrop-blur-xl rounded-[32px] border border-slate-200 p-6 mb-6 shadow-lg overflow-x-auto scrollbar-hide">
             <div className="flex gap-6">
-                <button onClick={() => setShowUpload(true)} className="flex-shrink-0 flex flex-col items-center gap-3 group cursor-pointer transition-all hover:scale-105">
+                <button onClick={onOpenStudio} className="flex-shrink-0 flex flex-col items-center gap-3 group cursor-pointer transition-all hover:scale-105">
                     <div className="relative w-20 h-20 rounded-[24px] bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:shadow-xl group-hover:shadow-indigo-300 transition-all">
                         <Plus size={32} className="text-white" />
                     </div>
@@ -463,119 +408,6 @@ const StoryBar = ({ stories, isAdmin, onAddStory, onOpenStory, users, currentUse
                     </div>
                 )}
             </div>
-
-            {/* Story Studio - Full Screen Popup */}
-            {showUpload && (
-                <div className="fixed inset-0 bg-black z-[1000] flex flex-col animate-fade-in">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(79,70,229,0.15),transparent_70%)]"></div>
-
-                    {/* Header */}
-                    <div className="relative z-10 flex justify-between items-center p-6 bg-black/20 backdrop-blur-md border-b border-white/5">
-                        <button onClick={() => setShowUpload(false)} className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white hover:bg-rose-500/20 hover:text-rose-500 transition-all">
-                            <X size={24} />
-                        </button>
-                        <div className="text-center">
-                            <h3 className="text-xl font-black text-white font-outfit tracking-tighter uppercase">Story Studio</h3>
-                            <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.3em]">Premium Creator</p>
-                        </div>
-                        <div className="w-12"></div>
-                    </div>
-
-                    <form onSubmit={handleUpload} className="flex-1 flex flex-col relative overflow-hidden">
-                        <div className="flex-1 overflow-y-auto p-6 md:p-12 space-y-8 flex flex-col items-center justify-center">
-
-                            {/* Preview Area */}
-                            <div className="w-full max-w-lg aspect-[9/16] bg-slate-900 rounded-[40px] border border-white/10 shadow-3xl overflow-hidden relative group/preview flex items-center justify-center p-4">
-                                {mediaPreview ? (
-                                    <div className="w-full h-full relative">
-                                        {storyType === 'video' ? (
-                                            <video src={mediaPreview} className="w-full h-full object-contain" autoPlay loop muted />
-                                        ) : storyType === 'audio' ? (
-                                            <div className="w-full h-full flex flex-col items-center justify-center gap-6">
-                                                <div className="w-32 h-32 rounded-full bg-indigo-600 flex items-center justify-center shadow-2xl animate-pulse">
-                                                    <Mic size={48} className="text-white" />
-                                                </div>
-                                                <p className="text-white font-black font-outfit uppercase tracking-widest text-sm">Audio Recorded</p>
-                                                <audio src={mediaPreview} controls className="w-full max-w-[200px] h-8 opacity-60 hover:opacity-100 transition-opacity" />
-                                            </div>
-                                        ) : (
-                                            <img src={mediaPreview} className="w-full h-full object-contain" />
-                                        )}
-                                        <button
-                                            type="button"
-                                            onClick={() => { setMediaPreview(null); setMediaFile(null); setStoryType('text'); }}
-                                            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center text-white hover:bg-rose-500 transition-all opacity-0 group-hover/preview:opacity-100"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="text-center space-y-6">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <button type="button" onClick={() => triggerFilePicker('image/*')} className="w-24 h-24 rounded-3xl bg-white/5 border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-indigo-600 transition-all group">
-                                                <Camera className="text-white opacity-40 group-hover:opacity-100 transition-opacity" />
-                                                <span className="text-[9px] font-black text-white/40 uppercase group-hover:text-white">Photo</span>
-                                            </button>
-                                            <button type="button" onClick={() => triggerFilePicker('video/*')} className="w-24 h-24 rounded-3xl bg-white/5 border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-purple-600 transition-all group">
-                                                <Play className="text-white opacity-40 group-hover:opacity-100 transition-opacity" />
-                                                <span className="text-[9px] font-black text-white/40 uppercase group-hover:text-white">Video</span>
-                                            </button>
-                                            <button type="button" onClick={() => triggerFilePicker('audio/*')} className="w-24 h-24 rounded-3xl bg-white/5 border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-rose-600 transition-all group">
-                                                <Mic className="text-white opacity-40 group-hover:opacity-100 transition-opacity" />
-                                                <span className="text-[9px] font-black text-white/40 uppercase group-hover:text-white">Audio</span>
-                                            </button>
-                                            <div className="w-24 h-24 rounded-3xl bg-indigo-600/20 border border-indigo-500/30 flex flex-col items-center justify-center gap-2">
-                                                <MessageCircle className="text-indigo-400" />
-                                                <span className="text-[9px] font-black text-indigo-400 uppercase">Text</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="absolute bottom-6 left-6 right-6">
-                                    <textarea
-                                        placeholder="Add a moment..."
-                                        value={momentText}
-                                        onChange={e => setMomentText(e.target.value)}
-                                        className="w-full bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 text-white font-bold placeholder:text-white/20 outline-none focus:border-indigo-500/50 transition-all resize-none h-20"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Options Layer */}
-                            <div className="w-full max-w-lg space-y-6">
-                                {isAdmin && (
-                                    <div className="space-y-2">
-                                        <p className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Post As</p>
-                                        <select
-                                            className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white font-bold appearance-none cursor-pointer focus:border-indigo-500/30 transition-all"
-                                            value={selectedClubId}
-                                            onChange={e => setSelectedClubId(e.target.value)}
-                                            required
-                                        >
-                                            <option value="" className="bg-black">Select Community...</option>
-                                            {users.map(u => <option key={u.id} value={u.id} className="bg-black">{u.fullName}</option>)}
-                                        </select>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Footer */}
-                        <div className="p-8 bg-black/40 backdrop-blur-xl border-t border-white/5">
-                            <button
-                                type="submit"
-                                disabled={isAdmin && !selectedClubId}
-                                className="w-full max-w-lg mx-auto block py-5 bg-indigo-600 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-indigo-600/30 hover:bg-white hover:text-black transition-all active:scale-95 disabled:opacity-30 disabled:grayscale"
-                            >
-                                Publish to Pulse
-                            </button>
-                        </div>
-                    </form>
-
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept={activeMimeType} className="hidden" />
-                </div>
-            )}
         </div>
     );
 };
@@ -1406,6 +1238,61 @@ function App() {
     const [campusEvents, setCampusEvents] = useState([]);
     const [campusStories, setCampusStories] = useState([]);
 
+    // Story Studio States
+    const [showStudio, setShowStudio] = useState(false);
+    const [studioMoment, setStudioMoment] = useState('');
+    const [studioMedia, setStudioMedia] = useState(null);
+    const [studioType, setStudioType] = useState('text');
+    const [studioClubId, setStudioClubId] = useState('');
+    const [activeMimeType, setActiveMimeType] = useState('image/*,video/*,audio/*');
+    const studioFileInputRef = useRef(null);
+
+    const handleStudioFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setStudioMedia(reader.result);
+                if (file.type.startsWith('video')) setStudioType('video');
+                else if (file.type.startsWith('audio')) setStudioType('audio');
+                else setStudioType('image');
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const triggerStudioPicker = (type) => {
+        setActiveMimeType(type);
+        setTimeout(() => studioFileInputRef.current?.click(), 10);
+    };
+
+    const handleStudioUpload = (e) => {
+        e.preventDefault();
+        let postingUser = isAdmin ? users.find(u => u.id === studioClubId) : currentUser;
+        if (!postingUser) return;
+
+        const newStory = {
+            id: Date.now(),
+            clubId: postingUser.id || postingUser.username,
+            username: postingUser.username,
+            avatar: postingUser.avatar,
+            moment: studioMoment || (studioType === 'text' ? "Pulse check! ✨" : ""),
+            media: studioMedia,
+            type: studioType,
+            timestamp: Date.now()
+        };
+
+        db.collection('stories').add(newStory);
+        showNotification("Pulse Captured! 🚀");
+
+        // Reset
+        setShowStudio(false);
+        setStudioMoment('');
+        setStudioMedia(null);
+        setStudioType('text');
+        setStudioClubId('');
+    };
+
     // Handle Login
     const handleLogin = (userData) => {
         setIsAuthenticated(true);
@@ -1570,13 +1457,8 @@ function App() {
                         <StoryBar
                             stories={campusStories}
                             isAdmin={isAdmin}
-                            onAddStory={(s) => {
-                                db.collection('stories').add(s);
-                                showNotification("Story Posted! ✨");
-                            }}
+                            onOpenStudio={() => setShowStudio(true)}
                             onOpenStory={setActiveStory}
-                            users={users}
-                            currentUser={currentUser}
                         />
 
                         <div className="hidden md:block">
@@ -1779,6 +1661,126 @@ function App() {
                             </div>
                         )}
                     </div>
+                </div>
+            )}
+
+            {/* Story Studio - Immersive Overhaul */}
+            {showStudio && (
+                <div className="fixed inset-0 z-[3000] flex flex-col animate-fade-in overflow-hidden">
+                    <div className="mesh-gradient-studio absolute inset-0"></div>
+                    <div className="noise-overlay"></div>
+
+                    {/* Header */}
+                    <div className="relative z-10 flex justify-between items-center p-8">
+                        <button onClick={() => setShowStudio(false)} className="w-14 h-14 rounded-2xl glass-studio flex items-center justify-center text-white hover:bg-rose-500 transition-all active:scale-90">
+                            <X size={28} />
+                        </button>
+                        <div className="text-center">
+                            <h3 className="text-2xl font-black text-white font-outfit tracking-tighter uppercase mb-1">Pulse Studio</h3>
+                            <div className="flex items-center justify-center gap-2">
+                                <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></span>
+                                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em]">Premium Creator 2.0</p>
+                            </div>
+                        </div>
+                        <div className="w-14"></div>
+                    </div>
+
+                    <form onSubmit={handleStudioUpload} className="flex-1 flex flex-col relative z-10 overflow-hidden">
+                        <div className="flex-1 overflow-y-auto p-12 flex flex-col items-center">
+                            <div className="w-full max-w-4xl flex flex-col lg:flex-row gap-12 items-center justify-center min-h-full">
+
+                                {/* Canvas Area */}
+                                <div className={`w-full max-w-sm aspect-[9/16] glass-studio rounded-[56px] relative overflow-hidden group/canvas ring-1 ring-white/10 transition-all duration-700 ${studioType === 'image' ? 'preview-glow-photo' : studioType === 'video' ? 'preview-glow-video' : studioType === 'audio' ? 'preview-glow-audio' : ''}`}>
+                                    {studioMedia ? (
+                                        <div className="w-full h-full relative">
+                                            {studioType === 'video' ? (
+                                                <video src={studioMedia} className="w-full h-full object-cover" autoPlay loop muted playsInline />
+                                            ) : studioType === 'audio' ? (
+                                                <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-gradient-to-t from-rose-500/20 to-transparent">
+                                                    <div className="w-48 h-48 rounded-full bg-rose-600 flex items-center justify-center shadow-3xl animate-pulse ring-8 ring-rose-500/20">
+                                                        <Mic size={64} className="text-white" />
+                                                    </div>
+                                                    <p className="mt-8 text-white font-black font-outfit uppercase tracking-widest text-sm">Audio Wave Ready</p>
+                                                </div>
+                                            ) : (
+                                                <img src={studioMedia} className="w-full h-full object-cover" />
+                                            )}
+
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                                            <button
+                                                type="button"
+                                                onClick={() => { setStudioMedia(null); setStudioType('text'); }}
+                                                className="absolute top-8 right-8 w-12 h-12 rounded-3xl bg-black/40 backdrop-blur-md flex items-center justify-center text-white hover:bg-rose-500 transition-all"
+                                            >
+                                                <Trash2 size={24} />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="w-full h-full flex flex-col items-center justify-center p-12 text-center bg-white/5">
+                                            <Radio size={80} className="text-white/5 mb-8" />
+                                            <h4 className="text-white/40 font-black font-outfit uppercase tracking-tighter text-3xl leading-none">Choose Your<br />Frequency</h4>
+                                        </div>
+                                    )}
+
+                                    <div className="absolute bottom-10 left-8 right-8 space-y-4">
+                                        <textarea
+                                            placeholder="Write your moment..."
+                                            value={studioMoment}
+                                            onChange={e => setStudioMoment(e.target.value)}
+                                            className="w-full bg-black/20 backdrop-blur-xl border border-white/5 rounded-3xl p-6 text-white font-bold placeholder:text-white/20 outline-none focus:border-indigo-500/30 transition-all resize-none h-32 text-lg"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Controls Rail */}
+                                <div className="space-y-8 w-full max-w-sm">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <button type="button" onClick={() => triggerStudioPicker('image/*')} className="h-28 rounded-[32px] glass-studio flex flex-col items-center justify-center gap-3 hover:bg-indigo-600 transition-all active:scale-95 group">
+                                            <Camera className="text-white/20 group-hover:text-white transition-colors" />
+                                            <span className="text-[10px] font-black text-white/40 uppercase tracking-widest group-hover:text-white">Photo</span>
+                                        </button>
+                                        <button type="button" onClick={() => triggerStudioPicker('video/*')} className="h-28 rounded-[32px] glass-studio flex flex-col items-center justify-center gap-3 hover:bg-purple-600 transition-all active:scale-95 group">
+                                            <Play className="text-white/20 group-hover:text-white transition-colors" />
+                                            <span className="text-[10px] font-black text-white/40 uppercase tracking-widest group-hover:text-white">Video</span>
+                                        </button>
+                                        <button type="button" onClick={() => triggerStudioPicker('audio/*')} className="h-28 rounded-[32px] glass-studio flex flex-col items-center justify-center gap-3 hover:bg-rose-600 transition-all active:scale-95 group">
+                                            <Mic className="text-white/20 group-hover:text-white transition-colors" />
+                                            <span className="text-[10px] font-black text-white/40 uppercase tracking-widest group-hover:text-white">Audio</span>
+                                        </button>
+                                        <button type="button" onClick={() => setStudioType('text')} className="h-28 rounded-[32px] glass-studio flex flex-col items-center justify-center gap-3 bg-indigo-500/10 border-indigo-500/20 active:scale-95">
+                                            <MessageCircle className="text-indigo-500" />
+                                            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Thought</span>
+                                        </button>
+                                    </div>
+
+                                    {isAdmin && (
+                                        <div className="space-y-4">
+                                            <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] font-outfit px-2">Broadcasting Identity</p>
+                                            <select
+                                                className="w-full glass-studio p-6 rounded-[32px] outline-none text-white font-bold appearance-none cursor-pointer focus:border-indigo-500/30 transition-all tracking-tight"
+                                                value={studioClubId}
+                                                onChange={e => setStudioClubId(e.target.value)}
+                                            >
+                                                <option value="" className="bg-slate-900">Select Campus Entity</option>
+                                                {users.map(u => <option key={u.id} value={u.id} className="bg-slate-900">{u.fullName}</option>)}
+                                            </select>
+                                        </div>
+                                    )}
+
+                                    <button
+                                        type="submit"
+                                        disabled={isAdmin && !studioClubId}
+                                        className="w-full h-24 bg-gradient-to-br from-indigo-500 to-indigo-700 text-white rounded-[40px] font-black text-sm uppercase tracking-[0.3em] shadow-2xl shadow-indigo-500/20 hover:scale-[1.02] hover:shadow-indigo-500/40 transition-all active:scale-95 disabled:opacity-20 flex items-center justify-center gap-4"
+                                    >
+                                        <Radio size={24} />
+                                        Launch Pulse
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <input type="file" ref={studioFileInputRef} onChange={handleStudioFileChange} accept={activeMimeType} className="hidden" />
                 </div>
             )}
 
