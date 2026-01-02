@@ -273,7 +273,7 @@
             );
         };
 
-        const PostCard = ({ post, onLike, onAddComment, isAdmin, onDelete, user }) => {
+        const PostCard = ({ post, onLike, onAddComment, isAdmin, onDelete, user, ...props }) => {
             const [showComments, setShowComments] = useState(false);
             const [commentText, setCommentText] = useState('');
             const [postComments, setPostComments] = useState([]);
@@ -291,8 +291,8 @@
             }, [showComments, post.docId]);
 
             return (
-                <div className="glass-dark-app rounded-[40px] p-8 group transition-all duration-500 hover:shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] border-white/5 relative overflow-hidden mb-8">
-                    <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className={`glass-dark-app rounded-[40px] p-8 group transition-luxury hover:shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] border-white/5 relative overflow-hidden mb-8 ${props.className || ''}`}>
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-600 opacity-0 group-hover:opacity-100 transition-luxury"></div>
 
                     <div className="flex justify-between items-start mb-6">
                         <div className="flex items-center gap-4">
@@ -386,33 +386,42 @@
 
         const RadioPlayer = ({ isPlaying, onToggle, currentShow, rjName, volume, onVolumeChange }) => {
             return (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-48px)] max-w-3xl h-20 glass-dark-app rounded-[28px] z-player flex items-center px-6 md:px-10 justify-between animate-slide-up hover:shadow-2xl transition-all duration-500 border-white/10 shadow-2xl">
-                    <div className="flex items-center gap-5 w-1/3">
-                        <div className={`w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-xl shadow-indigo-500/20 ${isPlaying ? 'animate-pulse-ring' : ''} transition-transform hover:scale-105`}>
-                            <Radio size={24} />
-                        </div>
-                        <div className="overflow-hidden hidden sm:block">
-                            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] leading-none mb-1.5 font-outfit">Live On-Air</p>
-                            <div className="w-48 overflow-hidden whitespace-nowrap">
-                                <p className="text-[15px] font-bold text-white animate-marquee inline-block font-outfit">{currentShow} <span className="text-slate-500 mx-2">•</span> <span className="text-indigo-400">RJ {rjName}</span></p>
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] md:w-auto min-w-[320px] md:min-w-[600px] glass-dark-app px-8 py-6 rounded-[32px] border-white/10 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] flex items-center justify-between z-player animate-slide-up select-none">
+                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/5 to-purple-600/5 rounded-[32px] pointer-events-none"></div>
+                    <div className="flex items-center gap-6">
+                        {/* Status/Live Info */}
+                        <div className="flex items-center gap-4 border-r border-white/10 pr-6 mr-2">
+                            <div className="relative">
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-luxury ${isPlaying ? 'bg-indigo-600 shadow-[0_0_30px_rgba(99,102,241,0.4)]' : 'bg-white/5 shadow-inner'}`}>
+                                    <Radio size={28} className={isPlaying ? 'text-white' : 'text-slate-500'} />
+                                </div>
+                                {isPlaying && (
+                                    <div className="absolute -top-1.5 -right-1.5 flex items-center gap-1.5 bg-rose-500 px-2.5 py-1 rounded-full border-2 border-[#111216] shadow-lg animate-entrance-headline">
+                                        <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
+                                        <span className="text-[8px] font-black text-white uppercase tracking-wider font-outfit">Live</span>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="hidden lg:block space-y-0.5">
+                                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none">On-Air Now</p>
+                                <h4 className="text-white font-black text-sm font-outfit truncate w-40 tracking-tight">{currentShow}</h4>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="flex items-center gap-8">
-                        <button className="text-slate-500 hover:text-white transition-colors transform hover:scale-110 active:scale-90"><TrendingUp size={22} /></button>
-                        <button onClick={onToggle} className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center hover:scale-105 transition-all duration-300 shadow-xl shadow-indigo-500/20 active:scale-95 group">
-                            {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1 group-hover:animate-pulse" />}
-                        </button>
-                        <button className="text-slate-500 hover:text-white transition-colors transform hover:scale-110 active:scale-90"><MoreHorizontal size={22} /></button>
-                    </div>
+                        {/* Controls */}
+                        <div className="flex items-center gap-6">
+                            <button onClick={onToggle} className="w-16 h-16 rounded-3xl bg-white/5 flex items-center justify-center text-white hover:bg-indigo-600 hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] transition-luxury group active:scale-90">
+                                {isPlaying ? <Pause size={32} className="fill-current" /> : <Play size={32} className="fill-current ml-1" />}
+                            </button>
 
-                    <div className="flex items-center gap-6 w-1/3 justify-end">
-                        <div className="hidden md:flex items-center gap-3 group">
-                            <Volume2 size={20} className="text-slate-500 group-hover:text-indigo-400 transition-colors" />
-                            <div className="w-24 h-1.5 bg-white/5 rounded-full relative overflow-hidden ring-1 ring-white/10">
-                                <div className="absolute top-0 left-0 h-full bg-indigo-600 rounded-full transition-all" style={{ width: `${volume}%` }}></div>
-                                <input type="range" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" value={volume} min="0" max="100" onChange={(e) => onVolumeChange(parseInt(e.target.value))} />
+                            <div className="hidden md:flex items-center gap-4 bg-white/5 p-2 pr-6 rounded-2xl border border-white/5 transition-luxury hover:bg-white/10 group/vol">
+                                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-400 group-hover/vol:text-white transition-colors">
+                                    <Volume2 size={20} />
+                                </div>
+                                <div className="relative w-28 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                    <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-luxury" style={{ width: `${volume}%` }}></div>
+                                    <input type="range" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" value={volume} min="0" max="100" onChange={(e) => onVolumeChange(parseInt(e.target.value))} />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -453,9 +462,13 @@
                             </button>
                         )}
 
-                        {stories.map(story => (
-                            <button key={story.id} onClick={() => onOpenStory(story)} className="flex-shrink-0 flex flex-col items-center gap-3 group cursor-pointer transition-all hover:scale-105">
-                                <div className="relative p-1 rounded-[24px] bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg">
+                        {stories.map((story, idx) => (
+                            <button
+                                key={story.id}
+                                onClick={() => onOpenStory(story)}
+                                className={`flex-shrink-0 flex flex-col items-center gap-3 group cursor-pointer transition-luxury hover:scale-105 animate-scale-in stagger-${idx + 1}`}
+                            >
+                                <div className="relative p-1 rounded-[24px] bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg group-hover:premium-glow-indigo transition-luxury">
                                     <img src={story.avatar || 'https://via.placeholder.com/150'} className="w-[72px] h-[72px] rounded-[20px] object-cover border-4 border-[#0a0a0c]" />
                                     <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-indigo-600 rounded-full border-4 border-[#0a0a0c] flex items-center justify-center">
                                         <Radio size={12} className="text-white" />
@@ -541,26 +554,25 @@
 
                     <h3 className="text-2xl font-black text-white mb-8 font-outfit leading-tight relative z-10 pr-10">{poll.question}</h3>
 
-                    <div className="space-y-4 relative z-10">
-                        {poll.options.map((opt, idx) => {
-                            const percentage = totalVotes === 0 ? 0 : Math.round((opt.votes + (voted === idx ? 1 : 0)) / totalVotes * 100);
+                    <div className="space-y-4">
+                        {poll.options.map((opt, i) => {
+                            const percentage = Math.round((opt.votes / totalVotes) * 100);
                             return (
                                 <button
-                                    key={idx}
-                                    onClick={() => { if (voted === false) { setVoted(idx); onVote(poll.id, idx); } }}
-                                    className={`w-full relative h-[72px] rounded-2xl border transition-all duration-500 overflow-hidden group/opt ${voted === idx
-                                        ? 'border-indigo-500 bg-indigo-600/10 shadow-lg'
-                                        : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'
-                                        }`}
+                                    key={i}
+                                    onClick={() => { if (!voted) { setVoted(i); onVote(poll.id, i); } }}
+                                    className={`w-full group/opt relative p-5 rounded-2xl border transition-luxury text-left overflow-hidden ${voted === i ? 'border-indigo-500 bg-indigo-500/10' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
                                 >
+                                    {/* Progress Background */}
                                     <div
-                                        className={`absolute left-0 top-0 bottom-0 transition-all duration-1000 ease-out ${voted !== false ? 'bg-indigo-600/20' : 'bg-transparent'}`}
-                                        style={{ width: `${voted !== false ? percentage : 0}%` }}
+                                        className={`absolute inset-y-0 left-0 transition-all duration-1000 ease-out ${voted === i ? 'bg-indigo-600/20' : 'bg-white/5'}`}
+                                        style={{ width: voted !== false ? `${percentage}%` : '0%' }}
                                     ></div>
-                                    <div className="relative flex justify-between items-center px-8 h-full">
+
+                                    <div className="flex justify-between items-center relative z-10">
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-2 h-2 rounded-full transition-all duration-500 ${voted === idx ? 'bg-indigo-400 scale-125' : 'bg-slate-600'}`}></div>
-                                            <span className={`font-bold font-outfit text-base ${voted === idx ? 'text-white' : 'text-slate-400 group-hover/opt:text-white'}`}>{opt.text}</span>
+                                            <span className={`w-2 h-2 rounded-full transition-luxury ${voted === i ? 'bg-indigo-400 animate-pulse' : 'bg-slate-600 group-hover/opt:bg-slate-400'}`}></span>
+                                            <span className={`text-sm font-bold font-outfit ${voted === i ? 'text-white' : 'text-slate-400 group-hover/opt:text-white'}`}>{opt.text}</span>
                                         </div>
                                         {voted !== false && (
                                             <span className="font-black text-indigo-400 font-outfit text-lg animate-scale-in">{percentage}%</span>
@@ -1010,7 +1022,19 @@
                         <h1 className="hidden lg:block text-xl font-black text-white tracking-tight font-outfit">BMU RADIO</h1>
                     </div>
 
-                    <nav className="space-y-2 flex-1">
+                    <nav className="space-y-4 flex-1 relative">
+                        {/* Fluid Active Indicator */}
+                        <div
+                            className="absolute left-0 w-full p-2 lg:p-4 z-0 active-indicator-fluid pointer-events-none"
+                            style={{
+                                height: '56px',
+                                transform: `translateY(${menuItems.findIndex(i => i.id === activeTab) * 72}px)`, /* 56px height + 16px (space-y-4) */
+                                opacity: activeTab ? 1 : 0
+                            }}
+                        >
+                            <div className="w-full h-full bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-500/30"></div>
+                        </div>
+
                         {menuItems.map((item) => {
                             const Icon = item.icon;
                             const isActive = activeTab === item.id;
@@ -1018,16 +1042,15 @@
                                 <button
                                     key={item.id}
                                     onClick={() => setActiveTab(item.id)}
-                                    className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 group relative overflow-hidden ${isActive
-                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
-                                        : 'text-slate-500 hover:bg-white/5 hover:text-white'
+                                    className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-500 group relative z-10 ${isActive
+                                        ? 'text-white'
+                                        : 'text-slate-500 hover:text-white'
                                         }`}
                                 >
-                                    <Icon size={24} className={`shrink-0 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-3'}`} />
+                                    <Icon size={24} className={`shrink-0 transition-transform duration-500 ${isActive ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-3'}`} />
                                     <span className={`hidden lg:block font-bold text-sm font-outfit tracking-wide transition-all ${isActive ? 'opacity-100 translate-x-0' : 'opacity-70 group-hover:opacity-100 group-hover:translate-x-1'}`}>
                                         {item.label}
                                     </span>
-                                    {isActive && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-6 bg-white rounded-l-full shadow-sm animate-fade-in"></div>}
                                 </button>
                             );
                         })}
@@ -1125,8 +1148,8 @@
                                 {isAdmin && <p className="text-indigo-400 text-xs mt-3 relative z-10 font-black uppercase tracking-widest animate-pulse">Start the magic above</p>}
                             </div>
                         ) : (
-                            events.map(event => (
-                                <div key={event.id} className="glass-dark-app rounded-[32px] p-7 group hover:scale-[1.02] transition-all duration-500 cursor-pointer border-white/5">
+                            events.map((event, idx) => (
+                                <div key={event.id} className={`glass-dark-app rounded-[32px] p-7 group hover:scale-[1.02] transition-luxury cursor-pointer border-white/5 animate-slide-up stagger-${(idx % 10) + 1}`}>
                                     <div className="flex justify-between items-start mb-6">
                                         <div className="space-y-3">
                                             <div className="flex items-center gap-2">
@@ -1189,7 +1212,7 @@
                             value={text}
                             onChange={e => setText(e.target.value)}
                             placeholder="Share your thoughts with the campus..."
-                            className="flex-1 bg-white/5 p-5 rounded-2xl outline-none text-sm resize-none border border-white/5 focus:border-indigo-500/30 transition-all font-bold placeholder:text-slate-600 text-white w-full h-28"
+                            className="flex-1 bg-white/5 p-5 rounded-2xl outline-none text-sm resize-none border border-white/5 focus:border-indigo-500/50 focus:bg-white/10 transition-luxury font-bold placeholder:text-slate-600 text-white w-full h-28 premium-glow-indigo focus:animate-pulse-ring"
                         />
 
                         {image && (
@@ -1520,10 +1543,12 @@
                                 <div className="space-y-6">
                                     <PollCard poll={pollData} onVote={(id, idx) => showNotification("Vote registered!")} />
 
-                                    {posts.map(p => (
+                                    {posts.map((p, idx) => (
                                         <PostCard
                                             key={p.docId || p.id}
                                             post={p}
+                                            className={`animate-slide-up stagger-${(idx % 10) + 1}`}
+                                            // ... other props
                                             onLike={(pid) => {
                                                 const doc = posts.find(post => (post.id === pid || post.docId === pid));
                                                 if (doc && doc.docId) {
