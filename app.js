@@ -104,8 +104,8 @@ const ChatWindow = ({ club, onClose, currentUser }) => {
                 {messages.map(msg => (
                     <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-[80%] p-2.5 rounded-2xl text-sm shadow-sm ${msg.sender === 'me'
-                                ? 'bg-blue-600 text-white chat-bubble-user'
-                                : 'bg-white text-gray-800 border border-gray-200 chat-bubble-club'
+                            ? 'bg-blue-600 text-white chat-bubble-user'
+                            : 'bg-white text-gray-800 border border-gray-200 chat-bubble-club'
                             }`}>
                             {msg.text}
                         </div>
@@ -180,7 +180,7 @@ const LoginPortal = ({ onLogin }) => {
                             </div>
                         </div>
                         <div className="space-y-4">
-                            <div className="relative"><Mail className="absolute left-4 top-3.5 text-gray-400" size={20} /><input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-12 pr-4 outline-none focus:border-blue-500 transition-all text-sm" required /></div>
+                            <div className="relative"><Mail className="absolute left-4 top-3.5 text-gray-400" size={20} /><input type="email" placeholder="Email Address" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-12 pr-4 outline-none focus:border-blue-500 transition-all text-sm" required /></div>
                             <div className="relative"><Lock className="absolute left-4 top-3.5 text-gray-400" size={20} /><input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-12 pr-4 outline-none focus:border-blue-500 transition-all text-sm" required /></div>
                         </div>
                         <button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3.5 rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2">

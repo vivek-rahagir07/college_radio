@@ -637,8 +637,12 @@
                     }
                 }
 
+                if (!email.toLowerCase().endsWith('@bmu.edu.in')) {
+                    setError('Access Restricted: Use @bmu.edu.in email');
+                    return;
+                }
                 const emailPrefix = email.split('@')[0];
-                const fullEmail = `${emailPrefix}@bmu.edu.in`;
+                const fullEmail = email.toLowerCase();
 
                 setIsLoading(true);
                 await new Promise(resolve => setTimeout(resolve, 1500));
@@ -891,14 +895,13 @@
                                                     <Mail size={16} />
                                                 </div>
                                                 <input
-                                                    type="text"
-                                                    placeholder="USER ID"
-                                                    className="w-full pl-10 pr-24 py-3 rounded-xl bg-slate-50/50 border border-slate-100 outline-none focus:border-indigo-400 focus:bg-white focus:shadow-[0_0_0_4px_rgba(99,102,241,0.1)] transition-all text-slate-800 placeholder:text-slate-300 font-bold text-[10px] uppercase tracking-widest"
+                                                    type="email"
+                                                    placeholder="EMAIL ADDRESS"
+                                                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50/50 border border-slate-100 outline-none focus:border-indigo-400 focus:bg-white focus:shadow-[0_0_0_4px_rgba(99,102,241,0.1)] transition-all text-slate-800 placeholder:text-slate-300 font-bold text-[10px] tracking-widest"
                                                     value={email}
-                                                    onChange={e => setEmail(e.target.value.split('@')[0])}
+                                                    onChange={e => setEmail(e.target.value)}
                                                     required
                                                 />
-                                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-200 text-[8px] font-black uppercase tracking-tighter">@bmu.edu.in</span>
                                             </div>
 
                                             <div className="input-group-premium relative group/input">

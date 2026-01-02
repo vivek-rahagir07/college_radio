@@ -572,7 +572,6 @@ h3,
 .login-input::placeholder {
     font-size: 11px;
     letter-spacing: 0.2em;
-    text-transform: uppercase;
     font-weight: 800;
     color: #ffffff;
     opacity: 0.9;
