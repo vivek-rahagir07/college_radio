@@ -1074,3 +1074,22 @@ h3,
         filter: blur(6px);
     }
 }
+
+/* Story Studio & Progress Animations */
+@keyframes progress-bar {
+    from {
+        transform: scaleX(0);
+    }
+
+    to {
+        transform: scaleX(1);
+    }
+}
+
+.animate-progress {
+    animation: progress-bar 5s linear forwards;
+}
+
+.shadow-3xl {
+    box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.6);
+}

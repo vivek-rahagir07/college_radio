@@ -377,45 +377,80 @@ const RadioPlayer = ({ isPlaying, onToggle, currentShow, rjName, volume, onVolum
     );
 };
 
-const StoryBar = ({ stories, isAdmin, onAddStory, onOpenStory, users }) => {
+const StoryBar = ({ stories, isAdmin, onAddStory, onOpenStory, users, currentUser }) => {
     const [showUpload, setShowUpload] = useState(false);
     const [selectedClubId, setSelectedClubId] = useState('');
     const [momentText, setMomentText] = useState('');
+    const [mediaFile, setMediaFile] = useState(null);
+    const [mediaPreview, setMediaPreview] = useState(null);
+    const [activeMimeType, setActiveMimeType] = useState('image/*,video/*,audio/*');
+    const [storyType, setStoryType] = useState('text'); // 'text', 'image', 'video', 'audio'
+    const fileInputRef = useRef(null);
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setMediaFile(file);
+                setMediaPreview(reader.result);
+                if (file.type.startsWith('video')) setStoryType('video');
+                else if (file.type.startsWith('audio')) setStoryType('audio');
+                else setStoryType('image');
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const triggerFilePicker = (type) => {
+        setActiveMimeType(type);
+        setTimeout(() => fileInputRef.current?.click(), 10);
+    };
 
     const handleUpload = (e) => {
         e.preventDefault();
-        const club = users.find(u => u.id === selectedClubId);
-        if (!club) return;
+
+        let postingUser = isAdmin ? users.find(u => u.id === selectedClubId) : currentUser;
+        if (!postingUser) return;
+
         onAddStory({
             id: Date.now(),
-            clubId: club.id,
-            username: club.username,
-            avatar: club.avatar,
-            moment: momentText || "Check out our new update! ✨",
+            clubId: postingUser.id || postingUser.username,
+            username: postingUser.username,
+            avatar: postingUser.avatar,
+            moment: momentText || (storyType === 'text' ? "Just keeping the pulse alive! ✨" : ""),
+            media: mediaPreview,
+            type: storyType,
             timestamp: Date.now()
         });
+
+        // Reset
         setShowUpload(false);
         setMomentText('');
+        setMediaFile(null);
+        setMediaPreview(null);
+        setStoryType('text');
+        setSelectedClubId('');
     };
 
     return (
         <div className="bg-white/90 backdrop-blur-xl rounded-[32px] border border-slate-200 p-6 mb-6 shadow-lg overflow-x-auto scrollbar-hide">
             <div className="flex gap-6">
-                {isAdmin && (
-                    <button onClick={() => setShowUpload(true)} className="flex-shrink-0 flex flex-col items-center gap-3 group cursor-pointer transition-all hover:scale-105">
-                        <div className="relative w-20 h-20 rounded-[24px] bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:shadow-xl group-hover:shadow-indigo-300 transition-all">
-                            <Plus size={32} className="text-white" />
-                        </div>
-                        <p className="text-xs font-black text-slate-700 font-outfit">Add Story</p>
-                    </button>
-                )}
+                <button onClick={() => setShowUpload(true)} className="flex-shrink-0 flex flex-col items-center gap-3 group cursor-pointer transition-all hover:scale-105">
+                    <div className="relative w-20 h-20 rounded-[24px] bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:shadow-xl group-hover:shadow-indigo-300 transition-all">
+                        <Plus size={32} className="text-white" />
+                    </div>
+                    <p className="text-xs font-black text-slate-700 font-outfit uppercase tracking-widest">Add Story</p>
+                </button>
 
                 {stories.map(story => (
                     <button key={story.id} onClick={() => onOpenStory(story)} className="flex-shrink-0 flex flex-col items-center gap-3 group cursor-pointer transition-all hover:scale-105">
-                        <div className="relative p-1 rounded-[24px] bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg group-hover:shadow-xl transition-all">
+                        <div className={`relative p-1 rounded-[24px] bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg group-hover:shadow-xl transition-all ${!story.viewed ? 'ring-2 ring-indigo-500 ring-offset-2' : ''}`}>
                             <img src={story.avatar} className="w-[72px] h-[72px] rounded-[20px] object-cover border-4 border-white" />
                             <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-indigo-600 rounded-full border-4 border-white flex items-center justify-center">
-                                <Radio size={12} className="text-white" />
+                                {story.type === 'video' ? <Play size={10} className="text-white fill-current ml-0.5" /> :
+                                    story.type === 'audio' ? <Mic size={10} className="text-white" /> :
+                                        <Radio size={12} className="text-white" />}
                             </div>
                         </div>
                         <p className="text-xs font-bold text-slate-700 font-outfit max-w-[80px] truncate">{story.username}</p>
@@ -424,49 +459,121 @@ const StoryBar = ({ stories, isAdmin, onAddStory, onOpenStory, users }) => {
 
                 {stories.length === 0 && !isAdmin && (
                     <div className="flex-1 py-8 text-center bg-white/40 backdrop-blur-md rounded-[32px] border border-dashed border-slate-200/50 mx-4">
-                        <p className="text-[11px] text-slate-400 font-bold uppercase tracking-[0.3em] font-outfit opacity-60 italic">Waiting for the pulse...</p>
+                        <p className="text-[11px] text-slate-400 font-bold uppercase tracking-[0.3em] font-outfit opacity-60 italic">No stories yet...</p>
                     </div>
                 )}
             </div>
 
+            {/* Story Studio - Full Screen Popup */}
             {showUpload && (
-                <div className="fixed inset-0 bg-slate-900/40 z-[200] flex items-center justify-center p-4 backdrop-blur-xl animate-fade-in">
-                    <form onSubmit={handleUpload} className="bg-white/90 backdrop-blur-2xl w-full max-w-sm rounded-[40px] p-10 shadow-2xl border border-white/50 space-y-6 animate-scale-in">
-                        <div className="flex justify-between items-center">
-                            <div className="space-y-1">
-                                <h3 className="text-2xl font-black text-slate-900 font-outfit tracking-tight">Post Moment</h3>
-                                <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Share a campus update</p>
-                            </div>
-                            <button type="button" onClick={() => setShowUpload(false)} className="w-12 h-12 rounded-2xl hover:bg-rose-50 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all active:scale-90"><X size={28} /></button>
+                <div className="fixed inset-0 bg-black z-[1000] flex flex-col animate-fade-in">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(79,70,229,0.15),transparent_70%)]"></div>
+
+                    {/* Header */}
+                    <div className="relative z-10 flex justify-between items-center p-6 bg-black/20 backdrop-blur-md border-b border-white/5">
+                        <button onClick={() => setShowUpload(false)} className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white hover:bg-rose-500/20 hover:text-rose-500 transition-all">
+                            <X size={24} />
+                        </button>
+                        <div className="text-center">
+                            <h3 className="text-xl font-black text-white font-outfit tracking-tighter uppercase">Story Studio</h3>
+                            <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.3em]">Premium Creator</p>
                         </div>
-                        <div className="space-y-5">
-                            <div className="space-y-2">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Club</p>
-                                <div className="relative group">
-                                    <select
-                                        className="w-full bg-slate-50/50 p-5 rounded-2xl outline-none text-sm border border-slate-100 focus:border-indigo-500/30 transition-all font-bold appearance-none cursor-pointer"
-                                        value={selectedClubId}
-                                        onChange={e => setSelectedClubId(e.target.value)}
-                                        required
-                                    >
-                                        <option value="">Pick a community...</option>
-                                        {users.map(u => <option key={u.id} value={u.id}>{u.fullName}</option>)}
-                                    </select>
-                                    <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-indigo-600 transition-colors"><Layers size={18} /></div>
+                        <div className="w-12"></div>
+                    </div>
+
+                    <form onSubmit={handleUpload} className="flex-1 flex flex-col relative overflow-hidden">
+                        <div className="flex-1 overflow-y-auto p-6 md:p-12 space-y-8 flex flex-col items-center justify-center">
+
+                            {/* Preview Area */}
+                            <div className="w-full max-w-lg aspect-[9/16] bg-slate-900 rounded-[40px] border border-white/10 shadow-3xl overflow-hidden relative group/preview flex items-center justify-center p-4">
+                                {mediaPreview ? (
+                                    <div className="w-full h-full relative">
+                                        {storyType === 'video' ? (
+                                            <video src={mediaPreview} className="w-full h-full object-contain" autoPlay loop muted />
+                                        ) : storyType === 'audio' ? (
+                                            <div className="w-full h-full flex flex-col items-center justify-center gap-6">
+                                                <div className="w-32 h-32 rounded-full bg-indigo-600 flex items-center justify-center shadow-2xl animate-pulse">
+                                                    <Mic size={48} className="text-white" />
+                                                </div>
+                                                <p className="text-white font-black font-outfit uppercase tracking-widest text-sm">Audio Recorded</p>
+                                                <audio src={mediaPreview} controls className="w-full max-w-[200px] h-8 opacity-60 hover:opacity-100 transition-opacity" />
+                                            </div>
+                                        ) : (
+                                            <img src={mediaPreview} className="w-full h-full object-contain" />
+                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={() => { setMediaPreview(null); setMediaFile(null); setStoryType('text'); }}
+                                            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center text-white hover:bg-rose-500 transition-all opacity-0 group-hover/preview:opacity-100"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="text-center space-y-6">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <button type="button" onClick={() => triggerFilePicker('image/*')} className="w-24 h-24 rounded-3xl bg-white/5 border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-indigo-600 transition-all group">
+                                                <Camera className="text-white opacity-40 group-hover:opacity-100 transition-opacity" />
+                                                <span className="text-[9px] font-black text-white/40 uppercase group-hover:text-white">Photo</span>
+                                            </button>
+                                            <button type="button" onClick={() => triggerFilePicker('video/*')} className="w-24 h-24 rounded-3xl bg-white/5 border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-purple-600 transition-all group">
+                                                <Play className="text-white opacity-40 group-hover:opacity-100 transition-opacity" />
+                                                <span className="text-[9px] font-black text-white/40 uppercase group-hover:text-white">Video</span>
+                                            </button>
+                                            <button type="button" onClick={() => triggerFilePicker('audio/*')} className="w-24 h-24 rounded-3xl bg-white/5 border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-rose-600 transition-all group">
+                                                <Mic className="text-white opacity-40 group-hover:opacity-100 transition-opacity" />
+                                                <span className="text-[9px] font-black text-white/40 uppercase group-hover:text-white">Audio</span>
+                                            </button>
+                                            <div className="w-24 h-24 rounded-3xl bg-indigo-600/20 border border-indigo-500/30 flex flex-col items-center justify-center gap-2">
+                                                <MessageCircle className="text-indigo-400" />
+                                                <span className="text-[9px] font-black text-indigo-400 uppercase">Text</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="absolute bottom-6 left-6 right-6">
+                                    <textarea
+                                        placeholder="Add a moment..."
+                                        value={momentText}
+                                        onChange={e => setMomentText(e.target.value)}
+                                        className="w-full bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 text-white font-bold placeholder:text-white/20 outline-none focus:border-indigo-500/50 transition-all resize-none h-20"
+                                    />
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Caption</p>
-                                <textarea
-                                    placeholder="Share your thoughts with the campus..."
-                                    className="w-full bg-slate-50/50 p-5 rounded-2xl outline-none text-sm border border-slate-100 focus:border-indigo-500/30 transition-all resize-none h-32 font-bold placeholder:text-slate-300"
-                                    value={momentText}
-                                    onChange={e => setMomentText(e.target.value)}
-                                />
+
+                            {/* Options Layer */}
+                            <div className="w-full max-w-lg space-y-6">
+                                {isAdmin && (
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Post As</p>
+                                        <select
+                                            className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white font-bold appearance-none cursor-pointer focus:border-indigo-500/30 transition-all"
+                                            value={selectedClubId}
+                                            onChange={e => setSelectedClubId(e.target.value)}
+                                            required
+                                        >
+                                            <option value="" className="bg-black">Select Community...</option>
+                                            {users.map(u => <option key={u.id} value={u.id} className="bg-black">{u.fullName}</option>)}
+                                        </select>
+                                    </div>
+                                )}
                             </div>
                         </div>
-                        <button type="submit" className="w-full py-5 bg-indigo-600 text-white rounded-[24px] font-black text-sm hover:bg-slate-900 transition-all shadow-xl shadow-indigo-100 active:scale-95 uppercase tracking-[0.2em] font-outfit">Cast Moment</button>
+
+                        {/* Footer */}
+                        <div className="p-8 bg-black/40 backdrop-blur-xl border-t border-white/5">
+                            <button
+                                type="submit"
+                                disabled={isAdmin && !selectedClubId}
+                                className="w-full max-w-lg mx-auto block py-5 bg-indigo-600 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-indigo-600/30 hover:bg-white hover:text-black transition-all active:scale-95 disabled:opacity-30 disabled:grayscale"
+                            >
+                                Publish to Pulse
+                            </button>
+                        </div>
                     </form>
+
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept={activeMimeType} className="hidden" />
                 </div>
             )}
         </div>
@@ -1469,6 +1576,7 @@ function App() {
                             }}
                             onOpenStory={setActiveStory}
                             users={users}
+                            currentUser={currentUser}
                         />
 
                         <div className="hidden md:block">
@@ -1615,21 +1723,61 @@ function App() {
                 onVolumeChange={setVolume}
             />
 
-            {/* Story Overlay */}
+            {/* Story Viewer Overlay */}
             {activeStory && (
-                <div className="fixed inset-0 bg-black/90 z-modal flex items-center justify-center p-4 animate-scale-in" onClick={() => setActiveStory(null)}>
-                    <div className="relative max-w-lg w-full aspect-[9/16] bg-gray-900 rounded-3xl overflow-hidden border border-white/20">
-                        <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/60 to-transparent flex items-center gap-3">
-                            <img src={activeStory.avatar} className="w-10 h-10 rounded-full border-2 border-white" />
-                            <div><p className="text-white font-bold text-sm">{activeStory.username}</p><p className="text-white/60 text-[10px]">Campus Moment • 2h ago</p></div>
-                            <button className="ml-auto text-white" onClick={() => setActiveStory(null)}><X size={24} /></button>
+                <div className="fixed inset-0 bg-black/95 z-[2000] flex items-center justify-center animate-fade-in" onClick={() => setActiveStory(null)}>
+                    <div className="absolute top-0 left-0 right-0 h-1 z-50 flex gap-1 p-2">
+                        <div className="h-1 bg-white/20 flex-1 rounded-full overflow-hidden">
+                            <div className="h-full bg-white w-full origin-left animate-progress"></div>
                         </div>
-                        <div className="w-full h-full flex flex-col items-center justify-center relative">
-                            <div className="absolute inset-0 opacity-40 bg-gradient-to-br from-blue-600 to-purple-600"></div>
-                            <Radio size={80} className="text-white relative z-10 animate-float" />
-                            <p className="text-white text-xl font-bold relative z-10 mt-6 px-10 text-center">{activeStory.moment}</p>
+                    </div>
+
+                    <div className="relative max-w-lg w-full h-[100dvh] md:h-[90vh] md:rounded-[40px] overflow-hidden bg-black flex flex-col" onClick={e => e.stopPropagation()}>
+                        {/* Media Layer */}
+                        <div className="flex-1 relative flex items-center justify-center">
+                            {activeStory.type === 'video' ? (
+                                <video src={activeStory.media} className="w-full h-full object-contain" autoPlay loop muted playsInline />
+                            ) : activeStory.type === 'audio' ? (
+                                <div className="text-center space-y-8 animate-float">
+                                    <div className="w-48 h-48 rounded-full bg-gradient-to-br from-rose-500/20 to-rose-600/40 flex items-center justify-center relative">
+                                        <div className="absolute inset-0 rounded-full border-4 border-rose-500/30 animate-ping"></div>
+                                        <div className="w-36 h-36 rounded-full bg-rose-600 flex items-center justify-center shadow-3xl shadow-rose-500/50">
+                                            <Mic size={64} className="text-white" />
+                                        </div>
+                                    </div>
+                                    <div className="glass-dark-app px-8 py-4 rounded-3xl border border-white/10">
+                                        <audio src={activeStory.media} autoPlay controls className="w-64 h-8" />
+                                    </div>
+                                </div>
+                            ) : activeStory.type === 'image' ? (
+                                <img src={activeStory.media} className="w-full h-full object-contain" />
+                            ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center p-12 bg-gradient-to-br from-indigo-900 via-slate-900 to-black text-center">
+                                    <Radio size={100} className="text-indigo-500/20 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale-[3] blur-3xl" />
+                                    <h2 className="text-4xl md:text-5xl font-black text-white font-outfit uppercase tracking-tighter leading-tight drop-shadow-2xl">{activeStory.moment}</h2>
+                                    <div className="w-20 h-1 bg-indigo-500 mt-8 rounded-full"></div>
+                                </div>
+                            )}
                         </div>
-                        <div className="absolute bottom-0 left-0 right-0 p-4 h-1 bg-white/20"><div className="h-full bg-white w-1/3 rounded-full"></div></div>
+
+                        {/* Info Overlay */}
+                        <div className="absolute top-0 left-0 right-0 p-6 bg-gradient-to-b from-black/80 to-transparent flex items-center gap-4 z-20">
+                            <div className="p-0.5 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-500">
+                                <img src={activeStory.avatar} className="w-12 h-12 rounded-[14px] object-cover border-2 border-black" />
+                            </div>
+                            <div>
+                                <h4 className="text-white font-black text-base font-outfit tracking-tight">{activeStory.username}</h4>
+                                <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest">{new Date(activeStory.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                            </div>
+                            <button className="ml-auto w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-white" onClick={() => setActiveStory(null)}><X size={24} /></button>
+                        </div>
+
+                        {/* Content Overlay */}
+                        {(activeStory.type !== 'text' && activeStory.moment) && (
+                            <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black via-black/40 to-transparent pt-20">
+                                <p className="text-white text-xl font-bold font-outfit leading-relaxed drop-shadow-lg">{activeStory.moment}</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

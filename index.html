@@ -417,10 +417,10 @@
             const [showUpload, setShowUpload] = useState(false);
             const [selectedClubId, setSelectedClubId] = useState('');
             const [momentText, setMomentText] = useState('');
-            const [storyTitle, setStoryTitle] = useState('');
             const [mediaFile, setMediaFile] = useState(null);
             const [mediaPreview, setMediaPreview] = useState(null);
             const [activeMimeType, setActiveMimeType] = useState('image/*,video/*,audio/*');
+            const [storyType, setStoryType] = useState('text');
             const fileInputRef = useRef(null);
 
             const handleFileChange = (e) => {
@@ -430,6 +430,9 @@
                     reader.onloadend = () => {
                         setMediaFile(file);
                         setMediaPreview(reader.result);
+                        if (file.type.startsWith('video')) setStoryType('video');
+                        else if (file.type.startsWith('audio')) setStoryType('audio');
+                        else setStoryType('image');
                     };
                     reader.readAsDataURL(file);
                 }
@@ -442,44 +445,26 @@
 
             const handleUpload = (e) => {
                 e.preventDefault();
-
-                let postingUser = null;
-                if (isAdmin) {
-                    postingUser = users.find(u => u.id === selectedClubId);
-                } else {
-                    postingUser = currentUser;
-                }
-
+                let postingUser = isAdmin ? users.find(u => u.id === selectedClubId) : currentUser;
                 if (!postingUser) return;
-
-                let mediaType = 'image';
-                if (mediaFile?.type.startsWith('video')) mediaType = 'video';
-                if (mediaFile?.type.startsWith('audio')) mediaType = 'audio';
 
                 onAddStory({
                     id: Date.now(),
                     clubId: postingUser.id,
                     username: postingUser.username,
                     avatar: postingUser.avatar,
-                    title: storyTitle || "Campus Moment",
-                    moment: momentText || "✨",
+                    moment: momentText || (storyType === 'text' ? "Campus Pulse ✨" : ""),
                     media: mediaPreview,
-                    type: mediaType,
+                    type: storyType,
                     timestamp: Date.now()
                 });
                 setShowUpload(false);
                 setMomentText('');
-                setStoryTitle('');
                 setMediaFile(null);
                 setMediaPreview(null);
+                setStoryType('text');
+                setSelectedClubId('');
             };
-
-            const menuOptions = [
-                { id: 'photo', label: 'Photo', icon: <Camera size={32} />, mime: 'image/*', color: 'bg-indigo-600', hover: 'hover:bg-indigo-500' },
-                { id: 'video', label: 'Video', icon: <Video size={32} />, mime: 'video/*', color: 'bg-purple-600', hover: 'hover:bg-purple-500' },
-                { id: 'audio', label: 'Voice', icon: <Mic size={32} />, mime: 'audio/*', color: 'bg-rose-600', hover: 'hover:bg-rose-500' },
-                { id: 'poll', label: 'Poll', icon: <Layers size={32} />, mime: '', color: 'bg-amber-600', hover: 'hover:bg-amber-500', disabled: true }
-            ];
 
             return (
                 <div className="glass-dark-app rounded-[32px] p-6 mb-8 shadow-2xl overflow-x-auto scrollbar-hide border-white/5">
@@ -500,7 +485,9 @@
                                 <div className={`relative p-1 rounded-[20px] bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg group-hover:premium-glow-indigo transition-luxury ${!story.viewed ? 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-[#0a0a0c]' : ''}`}>
                                     <img src={story.avatar || 'https://via.placeholder.com/150'} className="w-[60px] h-[60px] rounded-[16px] object-cover border-[3px] border-[#0a0a0c]" />
                                     <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-indigo-600 rounded-full border-[3px] border-[#0a0a0c] flex items-center justify-center">
-                                        <Radio size={10} className="text-white" />
+                                        {story.type === 'video' ? <Play size={10} className="text-white fill-current ml-0.5" /> :
+                                            story.type === 'audio' ? <Mic size={10} className="text-white" /> :
+                                                <Radio size={12} className="text-white" />}
                                     </div>
                                 </div>
                                 <p className="text-[9px] font-black text-slate-400 font-outfit max-w-[64px] truncate uppercase tracking-tighter">{story.username}</p>
@@ -515,125 +502,107 @@
                     </div>
 
                     {showUpload && (
-                        <div className="fixed inset-0 bg-black z-[2100] flex flex-col animate-fade-in">
+                        <div className="fixed inset-0 bg-black z-[2100] flex flex-col animate-fade-in overflow-hidden">
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.1),transparent_80%)]"></div>
+
                             {/* Header */}
-                            <div className="flex justify-between items-center p-6 bg-black/50 backdrop-blur-xl absolute top-0 left-0 w-full z-20">
-                                <button type="button" onClick={() => setShowUpload(false)} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all">
-                                    <X size={24} />
+                            <div className="flex justify-between items-center p-6 bg-black/40 backdrop-blur-2xl absolute top-0 left-0 w-full z-20 border-b border-white/5">
+                                <button type="button" onClick={() => setShowUpload(false)} className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white hover:bg-rose-500/20 hover:text-rose-500 transition-all">
+                                    <X size={28} />
                                 </button>
-                                <h3 className="text-lg font-black text-white font-outfit tracking-widest uppercase">Select Type</h3>
-                                <div className="w-10"></div>
+                                <div className="text-center">
+                                    <h3 className="text-xl font-black text-white font-outfit tracking-widest uppercase">Story Studio</h3>
+                                    <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Premium Creator</p>
+                                </div>
+                                <div className="w-12"></div>
                             </div>
 
                             <form onSubmit={handleUpload} className="flex-1 flex flex-col h-full relative">
-                                {/* Media Selection / Preview Area */}
-                                <div className="flex-1 bg-[#0a0a0c] relative flex items-center justify-center overflow-hidden p-6">
-                                    {mediaPreview ? (
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            {mediaFile?.type.startsWith('video') ? (
-                                                <video src={mediaPreview} className="w-full h-full object-contain" controls autoPlay />
-                                            ) : (
-                                                mediaFile?.type.startsWith('audio') ? (
-                                                    <div className="flex flex-col items-center gap-8 animate-scale-in">
-                                                        <div className="w-40 h-40 rounded-full bg-rose-500/20 flex items-center justify-center relative">
-                                                            <div className="absolute inset-0 rounded-full border-4 border-rose-500/30 animate-ping"></div>
-                                                            <div className="w-32 h-32 rounded-full bg-rose-600 flex items-center justify-center shadow-2xl shadow-rose-500/40">
-                                                                <Mic size={64} className="text-white" />
-                                                            </div>
+                                <div className="flex-1 overflow-y-auto pt-24 pb-32 flex flex-col items-center justify-center p-6 md:p-12">
+                                    <div className="w-full max-w-lg aspect-[9/16] bg-[#0d0e12] rounded-[48px] border border-white/10 shadow-3xl overflow-hidden relative group/preview flex flex-col items-center justify-center">
+                                        {mediaPreview ? (
+                                            <div className="w-full h-full relative">
+                                                {storyType === 'video' ? (
+                                                    <video src={mediaPreview} className="w-full h-full object-contain" autoPlay loop muted playsInline />
+                                                ) : storyType === 'audio' ? (
+                                                    <div className="w-full h-full flex flex-col items-center justify-center gap-8 bg-gradient-to-br from-black to-slate-900">
+                                                        <div className="w-32 h-32 rounded-full bg-rose-600 flex items-center justify-center shadow-2xl animate-pulse">
+                                                            <Mic size={48} className="text-white" />
                                                         </div>
-                                                        <div className="glass-dark-app px-6 py-4 rounded-3xl border border-white/10">
-                                                            <audio src={mediaPreview} controls className="w-64" />
-                                                        </div>
+                                                        <audio src={mediaPreview} controls className="w-64 h-8 opacity-50 hover:opacity-100 transition-all" />
                                                     </div>
                                                 ) : (
-                                                    <img src={mediaPreview} className="w-full h-full object-contain animate-scale-in" />
-                                                )
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <div className="w-full max-w-lg grid grid-cols-2 gap-4 animate-entrance-headline">
-                                            {menuOptions.map(opt => (
+                                                    <img src={mediaPreview} className="w-full h-full object-contain" />
+                                                )}
                                                 <button
-                                                    key={opt.id}
                                                     type="button"
-                                                    disabled={opt.disabled}
-                                                    onClick={() => triggerFilePicker(opt.mime)}
-                                                    className={`aspect-square rounded-[40px] ${opt.color} flex flex-col items-center justify-center gap-4 text-white p-6 transition-all hover:scale-[1.05] active:scale-95 shadow-2xl group ${opt.hover} disabled:opacity-30 disabled:grayscale disabled:hover:scale-100`}
+                                                    onClick={() => { setMediaPreview(null); setMediaFile(null); setStoryType('text'); }}
+                                                    className="absolute top-6 right-6 w-12 h-12 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white hover:bg-rose-500 transition-all"
                                                 >
-                                                    <div className="w-16 h-16 rounded-3xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                        {opt.icon}
-                                                    </div>
-                                                    <p className="font-black uppercase tracking-widest text-xs font-outfit">{opt.label}</p>
+                                                    <Trash2 size={24} />
                                                 </button>
-                                            ))}
+                                            </div>
+                                        ) : (
+                                            <div className="grid grid-cols-2 gap-6 p-12 w-full animate-entrance-headline">
+                                                <button type="button" onClick={() => triggerFilePicker('image/*')} className="aspect-square rounded-[32px] bg-white/5 border border-white/10 flex flex-col items-center justify-center gap-3 text-white hover:bg-indigo-600 transition-all group">
+                                                    <Camera size={32} className="opacity-40 group-hover:opacity-100 transition-all" />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">Photo</span>
+                                                </button>
+                                                <button type="button" onClick={() => triggerFilePicker('video/*')} className="aspect-square rounded-[32px] bg-white/5 border border-white/10 flex flex-col items-center justify-center gap-3 text-white hover:bg-purple-600 transition-all group">
+                                                    <Play size={32} className="opacity-40 group-hover:opacity-100 transition-all" />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">Video</span>
+                                                </button>
+                                                <button type="button" onClick={() => triggerFilePicker('audio/*')} className="aspect-square rounded-[32px] bg-white/5 border border-white/10 flex flex-col items-center justify-center gap-3 text-white hover:bg-rose-600 transition-all group">
+                                                    <Mic size={32} className="opacity-40 group-hover:opacity-100 transition-all" />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">Audio</span>
+                                                </button>
+                                                <div className="aspect-square rounded-[32px] bg-indigo-600/20 border border-indigo-500/30 flex flex-col items-center justify-center gap-3 text-indigo-400">
+                                                    <MessageCircle size={32} />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">Text</span>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="absolute bottom-10 left-8 right-8 z-20">
+                                            <textarea
+                                                placeholder="What's the buzz?"
+                                                value={momentText}
+                                                onChange={e => setMomentText(e.target.value)}
+                                                className="w-full bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-6 text-white text-lg font-bold placeholder:text-white/20 outline-none focus:border-indigo-500/50 transition-all resize-none h-32"
+                                            />
                                         </div>
-                                    )}
+                                    </div>
 
-                                    <input
-                                        type="file"
-                                        ref={fileInputRef}
-                                        onChange={handleFileChange}
-                                        accept={activeMimeType}
-                                        className="hidden"
-                                    />
-
-                                    {mediaPreview && (
-                                        <button
-                                            type="button"
-                                            onClick={() => { setMediaPreview(null); setMediaFile(null); }}
-                                            className="absolute top-24 right-4 bg-black/60 p-3 rounded-full text-white hover:bg-rose-500 transition-colors shadow-2xl border border-white/10"
-                                        >
-                                            <Trash2 size={24} />
-                                        </button>
-                                    )}
-                                </div>
-
-                                {/* Controls Layer (Bottom) */}
-                                <div className={`w-full bg-black/80 backdrop-blur-2xl p-8 pb-12 space-y-6 rounded-t-[48px] border-t border-white/10 transition-all ${mediaPreview ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}`}>
-                                    {/* Club Selector - ADMIN ONLY */}
-                                    {isAdmin && (
-                                        <div className="space-y-2">
-                                            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Posting As</p>
-                                            <div className="relative">
+                                    <div className="w-full max-w-lg mt-8 space-y-6">
+                                        {isAdmin && (
+                                            <div className="space-y-3">
+                                                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Posting Community</p>
                                                 <select
-                                                    className="w-full bg-white/10 p-4 rounded-2xl outline-none text-sm border border-white/10 focus:border-indigo-500/50 transition-all font-bold appearance-none cursor-pointer text-white"
+                                                    className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white font-bold appearance-none cursor-pointer focus:border-indigo-500/40 transition-all"
                                                     value={selectedClubId}
                                                     onChange={e => setSelectedClubId(e.target.value)}
                                                     required
                                                 >
-                                                    <option value="" className="bg-black">Select Verified Club Account...</option>
-                                                    {users.map(u => <option key={u.id} value={u.id} className="bg-black text-white">{u.username || u.fullName}</option>)}
+                                                    <option value="" className="bg-black">Select Brand Account...</option>
+                                                    {users.map(u => <option key={u.id} value={u.id} className="bg-black">{u.fullName || u.username}</option>)}
                                                 </select>
-                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"><Layers size={20} /></div>
                                             </div>
-                                        </div>
-                                    )}
-
-                                    {/* Metadata Inputs */}
-                                    <div className="space-y-4">
-                                        <input
-                                            value={storyTitle}
-                                            onChange={e => setStoryTitle(e.target.value)}
-                                            placeholder="GIVE IT A TITLE..."
-                                            className="w-full bg-transparent p-0 outline-none text-3xl font-black text-white placeholder:text-slate-800 font-outfit uppercase tracking-tighter"
-                                        />
-                                        <textarea
-                                            value={momentText}
-                                            onChange={e => setMomentText(e.target.value)}
-                                            placeholder={isAdmin ? "Add a caption..." : `What's happening, ${currentUser?.username}?`}
-                                            className="w-full bg-transparent p-0 outline-none text-lg text-white placeholder:text-slate-700 font-bold resize-none h-16"
-                                        />
+                                        )}
                                     </div>
+                                </div>
 
+                                <div className="absolute bottom-0 left-0 right-0 p-8 bg-black/60 backdrop-blur-2xl border-t border-white/5">
                                     <button
                                         type="submit"
-                                        disabled={(!selectedClubId && isAdmin) || !mediaPreview}
-                                        className="w-full py-5 bg-indigo-600 text-white rounded-[24px] font-black text-sm uppercase tracking-widest hover:bg-indigo-500 active:scale-95 disabled:opacity-50 disabled:bg-slate-800 transition-all shadow-xl shadow-indigo-600/30"
+                                        disabled={isAdmin && !selectedClubId}
+                                        className="w-full max-w-lg mx-auto block py-5 bg-indigo-600 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-indigo-600/30 hover:bg-white hover:text-black transition-all active:scale-95 disabled:opacity-30 disabled:grayscale"
                                     >
-                                        Share to Story
+                                        Broadcast Story
                                     </button>
                                 </div>
                             </form>
+
+                            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept={activeMimeType} className="hidden" />
                         </div>
                     )}
                 </div>
@@ -1901,73 +1870,85 @@
                     />
 
                     {/* Story Overlay */}
+                    {/* Story Viewer Overlay */}
                     {activeStory && (
-                        <div className="fixed inset-0 bg-black/90 z-modal flex items-center justify-center p-4 animate-scale-in" onClick={() => setActiveStory(null)}>
-                            <div className="relative max-w-lg w-full aspect-[9/16] bg-gray-900 rounded-3xl overflow-hidden border border-white/20">
-                                <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/60 to-transparent flex items-center gap-3">
-                                    <img src={activeStory.avatar} className="w-10 h-10 rounded-full border-2 border-white" />
-                                    <div><p className="text-white font-bold text-sm">{activeStory.username}</p><p className="text-white/60 text-[10px]">Campus Moment • 2h ago</p></div>
-                                    <button className="ml-auto text-white p-2 hover:bg-white/10 rounded-full transition-colors" onClick={() => setActiveStory(null)}><X size={24} /></button>
+                        <div className="fixed inset-0 bg-black/95 z-[2000] flex items-center justify-center animate-fade-in" onClick={() => setActiveStory(null)}>
+                            <div className="absolute top-0 left-0 right-0 h-1.5 z-50 flex gap-1 p-2">
+                                <div className="h-full bg-white/20 flex-1 rounded-full overflow-hidden">
+                                    <div className="h-full bg-white w-full origin-left animate-progress"></div>
                                 </div>
-                                <div className="w-full h-full flex flex-col items-center justify-center relative">
-                                    {/* Background Glow */}
-                                    <div className="absolute inset-0 opacity-40 bg-gradient-to-br from-indigo-600 to-purple-600"></div>
+                            </div>
 
-                                    {/* Media Rendering */}
-                                    <div className="relative z-10 w-full h-full flex items-center justify-center">
-                                        {activeStory.media ? (
-                                            activeStory.type === 'video' ? (
-                                                <video src={activeStory.media} className="w-full h-full object-contain" autoPlay loop muted />
-                                            ) : activeStory.type === 'audio' ? (
-                                                <div className="flex flex-col items-center gap-8 animate-scale-in">
-                                                    <div className="w-48 h-48 rounded-full bg-rose-500/20 flex items-center justify-center relative">
-                                                        <div className="absolute inset-0 rounded-full border-4 border-rose-500/30 animate-ping"></div>
-                                                        <div className="w-40 h-40 rounded-full bg-rose-600 flex items-center justify-center shadow-2xl shadow-rose-500/40">
-                                                            <Mic size={80} className="text-white" />
-                                                        </div>
-                                                    </div>
+                            <div className="relative max-w-lg w-full h-[100dvh] md:h-[90vh] md:rounded-[48px] overflow-hidden bg-black flex flex-col shadow-3xl" onClick={e => e.stopPropagation()}>
+                                {/* Media Layer */}
+                                <div className="flex-1 relative flex items-center justify-center">
+                                    {activeStory.type === 'video' ? (
+                                        <video src={activeStory.media} className="w-full h-full object-contain" autoPlay loop muted playsInline />
+                                    ) : activeStory.type === 'audio' ? (
+                                        <div className="text-center space-y-12 animate-float">
+                                            <div className="w-56 h-56 rounded-full bg-gradient-to-br from-rose-500/20 to-rose-600/40 flex items-center justify-center relative">
+                                                <div className="absolute inset-0 rounded-full border-4 border-rose-500/30 animate-ping"></div>
+                                                <div className="w-44 h-44 rounded-full bg-rose-600 flex items-center justify-center shadow-3xl shadow-rose-500/50">
+                                                    <Mic size={80} className="text-white" />
                                                 </div>
-                                            ) : (
-                                                <img src={activeStory.media} className="w-full h-full object-contain" />
-                                            )
-                                        ) : (
-                                            <Radio size={80} className="text-white relative z-10 animate-float" />
-                                        )}
-                                    </div>
-
-                                    {/* Metadata Overlay (Title & Caption) */}
-                                    <div className="absolute bottom-16 left-0 right-0 p-10 z-20 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col items-center text-center">
-                                        <h2 className="text-white text-3xl font-black font-outfit uppercase tracking-tighter leading-tight mb-3 drop-shadow-2xl">
-                                            {activeStory.title || "Campus Moment"}
-                                        </h2>
-                                        <p className="text-white/90 text-[10px] font-black uppercase tracking-[0.2em] drop-shadow-lg opacity-80 mb-4">
-                                            POSTED BY {activeStory.username}
-                                        </p>
-                                        <p className="text-white/95 text-lg font-bold drop-shadow-lg max-w-sm line-clamp-3">
-                                            {activeStory.moment}
-                                        </p>
-                                    </div>
-
-                                    {isAdmin && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (window.confirm("Delete this story?")) {
-                                                    db.collection('stories').doc(activeStory.docId).delete();
-                                                    setActiveStory(null);
-                                                    showNotification("Story deleted");
-                                                }
-                                            }}
-                                            className="absolute top-20 right-4 p-3 bg-rose-500/20 text-rose-500 rounded-2xl border border-rose-500/30 hover:bg-rose-500 hover:text-white transition-all z-30 group"
-                                        >
-                                            <Trash2 size={24} />
-                                        </button>
+                                            </div>
+                                            <div className="glass-dark-app px-10 py-5 rounded-[32px] border border-white/10 shadow-2xl">
+                                                <audio src={activeStory.media} autoPlay controls className="w-64 h-8" />
+                                            </div>
+                                        </div>
+                                    ) : activeStory.type === 'image' ? (
+                                        <img src={activeStory.media} className="w-full h-full object-contain" />
+                                    ) : (
+                                        <div className="w-full h-full flex flex-col items-center justify-center p-12 bg-gradient-to-br from-indigo-950 via-slate-900 to-black text-center relative overflow-hidden">
+                                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.1),transparent_70%)]"></div>
+                                            <Radio size={120} className="text-indigo-500/10 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale-[4] blur-3xl" />
+                                            <h2 className="text-4xl md:text-6xl font-black text-white font-outfit uppercase tracking-tighter leading-[0.9] drop-shadow-2xl z-10 animate-entrance-headline">{activeStory.moment}</h2>
+                                            <div className="w-24 h-1.5 bg-indigo-500 mt-12 rounded-full z-10"></div>
+                                        </div>
                                     )}
                                 </div>
-                                <div className="absolute bottom-0 left-0 right-0 p-4 h-1 bg-white/20"><div className="h-full bg-white w-1/3 rounded-full"></div></div>
+
+                                {/* Info Overlay */}
+                                <div className="absolute top-0 left-0 right-0 p-8 bg-gradient-to-b from-black/90 via-black/40 to-transparent flex items-center gap-5 z-20">
+                                    <div className="p-1 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500">
+                                        <img src={activeStory.avatar} className="w-14 h-14 rounded-[18px] object-cover border-2 border-black shadow-lg" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="text-white font-black text-lg font-outfit tracking-tight leading-none mb-1.5">{activeStory.username}</h4>
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(99,102,241,1)]"></span>
+                                            <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">{new Date(activeStory.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                        </div>
+                                    </div>
+                                    <button className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white hover:bg-rose-500/20 hover:text-rose-500 transition-all active:scale-90" onClick={() => setActiveStory(null)}><X size={28} /></button>
+                                </div>
+
+                                {isAdmin && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (window.confirm("Delete this story?")) {
+                                                db.collection('stories').doc(activeStory.docId || activeStory.id).delete();
+                                                setActiveStory(null);
+                                                showNotification("Story deleted");
+                                            }
+                                        }}
+                                        className="absolute top-28 right-8 w-14 h-14 bg-rose-500/20 text-rose-500 rounded-2xl border border-rose-500/30 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all z-30 shadow-2xl"
+                                    >
+                                        <Trash2 size={24} />
+                                    </button>
+                                )}
+
+                                {/* Content Overlay */}
+                                {(activeStory.type !== 'text' && activeStory.moment) && (
+                                    <div className="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-black via-black/60 to-transparent pt-24 z-20">
+                                        <p className="text-white text-2xl font-black font-outfit leading-tight drop-shadow-2xl">{activeStory.moment}</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
+
 
                     <RightSidebar users={users} followedClubs={followedClubs} onFollow={handleFollow} onUnfollow={handleUnfollow} onChat={setActiveChat} />
 
