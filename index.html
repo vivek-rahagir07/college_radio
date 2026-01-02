@@ -1256,7 +1256,14 @@
                                 <h3 className="text-xs font-black text-white font-outfit tracking-widest leading-none">EXPLORE CLUBS</h3>
                                 <p className="text-[8px] text-indigo-400 font-black uppercase tracking-widest mt-1">Directory</p>
                             </div>
-                            <button className="text-[9px] font-black text-slate-500 hover:text-white transition-colors uppercase tracking-widest">View All</button>
+                            {suggestions.length > 5 && (
+                                <button
+                                    onClick={() => setShowAll(!showAll)}
+                                    className="text-[9px] font-black text-indigo-400 hover:text-white transition-colors uppercase tracking-widest"
+                                >
+                                    {showAll ? 'Collapse' : 'View All'}
+                                </button>
+                            )}
                         </div>
 
                         <div className="space-y-4 flex-1 overflow-y-auto custom-scrollbar pr-1">
