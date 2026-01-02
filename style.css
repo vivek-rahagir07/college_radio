@@ -22,7 +22,7 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     /* Sharper border */
     box-shadow:
-        0 25px 50px -12px rgba(0, 0, 0, 0.5),
+        0 20px 40px -8px rgba(0, 0, 0, 0.5),
         inset 0 1px 1px rgba(255, 255, 255, 0.05);
 }
 
@@ -44,6 +44,8 @@ body {
     font-family: 'Inter', sans-serif;
     background: var(--bg-secondary);
     color: var(--text-primary);
+    font-size: 14px;
+    /* Reduced base size */
 }
 
 h1,
