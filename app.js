@@ -280,9 +280,15 @@ const PostCard = ({ post, onLike, onAddComment, isAdmin, onDelete, user }) => {
                 <p className="text-[17px] font-medium text-white/90 leading-relaxed font-outfit mb-8 tracking-tight">{post.text}</p>
 
                 {post.image && (
-                    <div className="mb-8 rounded-[40px] overflow-hidden shadow-2xl border border-white/5 ring-1 ring-white/10 group/media transition-all">
+                    <div className="mb-8 rounded-[40px] overflow-hidden shadow-2xl border border-white/5 ring-1 ring-white/10 group/media transition-all relative">
                         <img src={post.image} className="w-full h-auto max-h-[600px] object-cover transition-transform duration-[3000ms] group-hover/media:scale-110" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover/media:opacity-100 transition-opacity"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover/media:opacity-100 transition-opacity duration-700"></div>
+                    </div>
+                )}
+
+                {post.video && (
+                    <div className="mb-8 rounded-[40px] overflow-hidden shadow-2xl border border-white/5 ring-1 ring-white/10 group/media transition-all bg-black">
+                        <video src={post.video} controls className="w-full h-auto max-h-[600px]" />
                     </div>
                 )}
 
@@ -818,32 +824,32 @@ const LoginPortal = ({ onLogin }) => {
     );
 };
 
-const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
+const LeftSidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
     const menuItems = [
-        { id: 'home', icon: Home, label: 'Feed' },
+        { id: 'home', icon: Home, label: 'Home' },
         { id: 'explore', icon: Search, label: 'Explore' },
         { id: 'events', icon: Calendar, label: 'Events' },
         { id: 'notifications', icon: Heart, label: 'Alerts' },
-        { id: 'create', icon: PlusSquare, label: 'Post' },
+        { id: 'create', icon: PlusSquare, label: 'Create' },
         { id: 'profile', icon: User, label: 'Profile' },
     ];
 
     return (
-        <div className="hidden md:flex flex-col w-20 lg:w-64 h-[calc(100vh-32px)] fixed left-4 top-4 aero-glass rounded-[40px] z-sidebar px-4 py-8 pointer-events-auto transition-all duration-700 hover:shadow-2xl select-none group/sidebar">
-            <div className="flex items-center gap-4 mb-12 px-2 lg:px-4">
+        <div className="hidden md:flex flex-col w-20 lg:w-72 h-screen fixed left-0 top-0 aero-glass border-r border-white/5 z-sidebar px-4 py-10 pointer-events-auto transition-all duration-700 hover:shadow-2xl select-none group/sidebar bg-black/20">
+            <div className="flex items-center gap-4 mb-14 px-4">
                 <div className="relative">
-                    <div className="absolute inset-0 bg-indigo-500 blur-xl opacity-20 group-hover/sidebar:opacity-40 transition-opacity"></div>
-                    <div className="relative w-12 h-12 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-indigo-500/20 transition-all duration-500 group-hover/sidebar:rotate-[360deg] group-hover/sidebar:scale-110">
-                        <Radio size={24} strokeWidth={2.5} />
+                    <div className="absolute inset-0 bg-indigo-500 blur-2xl opacity-20 group-hover/sidebar:opacity-40 transition-opacity"></div>
+                    <div className="relative w-12 h-12 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-[18px] flex items-center justify-center text-white shadow-3xl shadow-indigo-500/20 transition-all duration-700 group-hover/sidebar:rotate-[360deg] group-hover/sidebar:scale-110">
+                        <Radio size={26} strokeWidth={2.5} />
                     </div>
                 </div>
                 <div className="hidden lg:block">
-                    <h1 className="text-lg font-black text-white tracking-widest font-outfit leading-tight">BMU</h1>
-                    <p className="text-[10px] font-black text-indigo-400 tracking-[0.4em] uppercase opacity-80">Portal</p>
+                    <h1 className="text-xl font-black text-white tracking-widest font-outfit leading-tight uppercase">BMU <span className="text-indigo-500">Radio</span></h1>
+                    <p className="text-[10px] font-black text-white/20 tracking-[0.5em] uppercase">Frequency 4.0</p>
                 </div>
             </div>
 
-            <nav className="space-y-3 flex-1">
+            <nav className="space-y-2 flex-1 px-2">
                 {menuItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = activeTab === item.id;
@@ -851,26 +857,37 @@ const Sidebar = ({ activeTab, setActiveTab, currentUser, onLogout }) => {
                         <button
                             key={item.id}
                             onClick={() => setActiveTab(item.id)}
-                            className={`w-full flex items-center gap-4 p-4 rounded-[24px] transition-all duration-500 group relative overflow-hidden ${isActive
-                                ? 'bg-white/10 text-white shadow-2xl shadow-black/20'
+                            className={`w-full flex items-center gap-5 p-4 rounded-[22px] transition-all duration-500 group relative overflow-hidden ${isActive
+                                ? 'bg-white/10 text-white shadow-2xl'
                                 : 'text-white/40 hover:text-white hover:bg-white/5'
                                 }`}
                         >
-                            {isActive && <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/10 animate-pulse"></div>}
-                            <Icon size={22} className={`shrink-0 transition-all duration-500 relative z-10 ${isActive ? 'scale-110 text-indigo-400' : 'group-hover:scale-110 group-hover:text-white'}`} />
-                            <span className={`hidden lg:block font-bold text-[13px] font-outfit tracking-wider transition-all relative z-10 ${isActive ? 'opacity-100 translate-x-0' : 'opacity-100 group-hover:translate-x-1'}`}>
+                            <div className="relative z-10 flex items-center justify-center">
+                                <Icon size={24} className={`shrink-0 transition-all duration-500 ${isActive ? 'scale-110 text-indigo-400' : 'group-hover:scale-110 group-hover:text-white'}`} />
+                                {isActive && <div className="absolute -inset-2 bg-indigo-500/20 blur-lg rounded-full animate-pulse"></div>}
+                            </div>
+                            <span className={`hidden lg:block font-bold text-[15px] font-outfit tracking-wide transition-all relative z-10 ${isActive ? 'opacity-100' : 'opacity-80 group-hover:opacity-100 group-hover:translate-x-1'}`}>
                                 {item.label}
                             </span>
-                            {isActive && <div className="absolute right-3 w-1.5 h-1.5 bg-indigo-500 rounded-full shadow-[0_0_10px_#6366f1]"></div>}
+                            {isActive && <div className="absolute left-0 w-1 h-6 bg-indigo-500 rounded-r-full shadow-[0_0_15px_#6366f1]"></div>}
                         </button>
                     );
                 })}
             </nav>
 
-            <div className="mt-auto pt-8 border-t border-white/5">
-                <button onClick={onLogout} className="w-full flex items-center gap-4 p-4 rounded-[24px] text-white/30 hover:text-rose-500 hover:bg-rose-500/5 transition-all duration-500 group">
-                    <LogOut size={22} className="group-hover:-translate-x-1 transition-transform" />
-                    <span className="hidden lg:block font-bold text-[13px] font-outfit uppercase tracking-widest">Logout</span>
+            <div className="mt-auto px-2">
+                <div className="mb-6 p-4 aero-glass rounded-[24px] border border-white/5 hidden lg:block group/profile-card cursor-pointer hover:border-white/10 transition-all">
+                    <div className="flex items-center gap-3">
+                        <img src={currentUser.avatar} className="w-10 h-10 rounded-xl object-cover border border-white/10" />
+                        <div className="flex-1 overflow-hidden">
+                            <p className="text-sm font-black text-white truncate">{currentUser.fullName}</p>
+                            <p className="text-[10px] text-white/30 font-bold truncate">@{currentUser.username}</p>
+                        </div>
+                    </div>
+                </div>
+                <button onClick={onLogout} className="w-full flex items-center gap-5 p-4 rounded-[22px] text-white/30 hover:text-rose-500 hover:bg-rose-500/5 transition-all duration-500 group">
+                    <LogOut size={24} className="group-hover:-translate-x-1 transition-transform" />
+                    <span className="hidden lg:block font-bold text-[15px] font-outfit tracking-wide">Logout</span>
                 </button>
             </div>
         </div>
@@ -1014,73 +1031,89 @@ const EventsView = ({ events, isAdmin, onAddEvent }) => {
 
 const CreatePost = ({ user, onPost }) => {
     const [text, setText] = useState('');
-    const [image, setImage] = useState(null);
+    const [media, setMedia] = useState(null);
+    const [mediaType, setMediaType] = useState(null); // 'image' or 'video'
     const fileInputRef = useRef(null);
 
-    const handleImageChange = (e) => {
+    const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
+            const type = file.type.startsWith('video') ? 'video' : 'image';
+            setMediaType(type);
             const reader = new FileReader();
-            reader.onloadend = () => setImage(reader.result);
+            reader.onloadend = () => setMedia(reader.result);
             reader.readAsDataURL(file);
         }
     };
 
     const handlePost = () => {
-        onPost({ text, image });
+        onPost({ text, image: mediaType === 'image' ? media : null, video: mediaType === 'video' ? media : null });
         setText('');
-        setImage(null);
+        setMedia(null);
+        setMediaType(null);
     };
 
     return (
-        <div className="aero-glass rounded-[48px] border border-white/5 shadow-2xl p-10 mb-12 group transition-all duration-700 hover:border-white/10 overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[100px] -mr-32 -mt-32"></div>
+        <div className="aero-glass rounded-[48px] border border-white/10 shadow-3xl p-10 mb-12 group transition-all duration-700 hover:border-white/20 overflow-hidden relative bg-white/[0.02]">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-[120px] -mr-40 -mt-40 group-hover:scale-110 transition-transform duration-1000"></div>
 
-            <div className="flex items-center gap-5 mb-8 relative z-10">
-                <div className="relative p-0.5 rounded-[22px] bg-gradient-to-tr from-indigo-500 to-purple-600 shadow-xl">
-                    <img src={user.avatar} className="w-14 h-14 rounded-[20px] object-cover border-2 border-[#08080a]" />
+            <div className="flex items-center gap-6 mb-8 relative z-10">
+                <div className="relative p-0.5 rounded-[24px] bg-gradient-to-tr from-indigo-500 via-purple-500 to-rose-500 shadow-2xl">
+                    <img src={user.avatar} className="w-16 h-16 rounded-[22px] object-cover border-2 border-[#0a0a0c]" />
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-4 border-[#0a0a0c] shadow-lg"></div>
                 </div>
                 <div className="flex-1 leading-tight">
-                    <h4 className="text-white font-black text-lg font-outfit tracking-tight">Broadcast Pulse</h4>
-                    <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Sharing as {user.username}</p>
+                    <h4 className="text-white font-black text-xl font-outfit tracking-tight uppercase">Broadcast Pulse</h4>
+                    <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em]">Synced via {user.username}</p>
                 </div>
             </div>
 
-            <div className="space-y-6 relative z-10">
+            <div className="space-y-8 relative z-10">
                 <textarea
                     value={text}
                     onChange={e => setText(e.target.value)}
-                    placeholder="Capture the campus frequency..."
-                    className="w-full bg-white/5 p-6 rounded-[32px] outline-none text-[16px] resize-none border border-white/5 focus:border-indigo-500/30 focus:ring-8 focus:ring-indigo-500/5 transition-all font-medium placeholder:text-white/20 text-white min-h-[140px]"
+                    placeholder="What's vibrating on campus? Share a pulse..."
+                    className="w-full bg-white/[0.03] p-8 rounded-[36px] outline-none text-[18px] resize-none border border-white/10 focus:border-indigo-500/50 focus:bg-white/[0.05] transition-all font-medium placeholder:text-white/10 text-white min-h-[160px] custom-scrollbar"
                 />
 
-                {image && (
-                    <div className="relative rounded-[32px] overflow-hidden border border-white/5 shadow-2xl group/preview">
-                        <img src={image} className="w-full h-64 object-cover transition-transform duration-700 group-hover/preview:scale-105" />
-                        <button onClick={() => setImage(null)} className="absolute top-4 right-4 w-12 h-12 bg-black/60 backdrop-blur-md text-white rounded-2xl flex items-center justify-center hover:bg-rose-500 transition-all shadow-xl">
-                            <Trash2 size={24} />
+                {media && (
+                    <div className="relative rounded-[36px] overflow-hidden border border-white/10 shadow-3xl group/preview ring-1 ring-white/5">
+                        {mediaType === 'image' ? (
+                            <img src={media} className="w-full max-h-[500px] object-cover transition-transform duration-1000 group-hover/preview:scale-105" />
+                        ) : (
+                            <video src={media} controls className="w-full max-h-[500px] bg-black" />
+                        )}
+                        <button
+                            onClick={() => { setMedia(null); setMediaType(null); }}
+                            className="absolute top-6 right-6 w-14 h-14 bg-black/60 backdrop-blur-xl text-white rounded-2xl flex items-center justify-center hover:bg-rose-500 transition-all shadow-2xl scale-0 group-hover/preview:scale-100 duration-500"
+                        >
+                            <X size={28} />
                         </button>
                     </div>
                 )}
 
-                <div className="flex items-center gap-4 pt-6">
-                    <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageChange} />
-                    <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-3 px-6 py-4 rounded-[24px] bg-white/5 text-white/40 hover:bg-white/10 hover:text-white transition-all font-black text-xs uppercase tracking-widest font-outfit group/act">
-                        <Camera size={20} className="group-hover/act:scale-110 group-hover/act:rotate-6 transition-transform" />
-                        Photo
+                <div className="flex items-center gap-6 pt-4">
+                    <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" onChange={handleFileChange} />
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center gap-4 px-8 py-5 rounded-[24px] bg-white/5 text-white/40 hover:bg-white/10 hover:text-white transition-all font-black text-xs uppercase tracking-[0.2em] font-outfit group/act active:scale-95"
+                    >
+                        <Camera size={22} className="group-hover/act:scale-110 group-hover/act:rotate-6 transition-transform text-indigo-400" />
+                        Media
                     </button>
-                    <button className="flex items-center gap-3 px-6 py-4 rounded-[24px] bg-white/5 text-white/40 hover:bg-white/10 hover:text-white transition-all font-black text-xs uppercase tracking-widest font-outfit group/act">
-                        <Mic size={20} className="group-hover/act:scale-110 group-hover/act:rotate-6 transition-transform" />
-                        Audio
+                    <button className="flex items-center gap-4 px-8 py-5 rounded-[24px] bg-white/5 text-white/40 hover:bg-white/10 hover:text-white transition-all font-black text-xs uppercase tracking-[0.2em] font-outfit group/act active:scale-95">
+                        <Mic size={22} className="group-hover/act:scale-110 group-hover/act:rotate-6 transition-transform text-rose-400" />
+                        Pulse
                     </button>
 
                     <button
                         onClick={handlePost}
-                        disabled={!text && !image}
-                        className={`ml-auto px-10 py-4 rounded-[28px] font-black text-xs uppercase tracking-[0.2em] font-outfit shadow-2xl transition-all duration-500 flex items-center gap-3 ${(!text && !image) ? 'bg-white/5 text-white/20 cursor-not-allowed' : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:scale-105 hover:shadow-indigo-500/20 active:scale-95'}`}
+                        disabled={!text && !media}
+                        className={`ml-auto px-12 py-5 rounded-[28px] font-black text-xs uppercase tracking-[0.3em] font-outfit shadow-3xl transition-all duration-700 flex items-center gap-4 overflow-hidden relative group/btn ${(!text && !media) ? 'bg-white/5 text-white/10 cursor-not-allowed opacity-50' : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:scale-[1.05] hover:shadow-indigo-500/40 active:scale-95'}`}
                     >
-                        <Send size={18} />
-                        Broadcast
+                        <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-1000"></div>
+                        <Send size={20} className="relative z-10" />
+                        <span className="relative z-10">Broadcast</span>
                     </button>
                 </div>
             </div>
@@ -1088,120 +1121,120 @@ const CreatePost = ({ user, onPost }) => {
     );
 };
 
-const RightSidebar = ({ users, followedClubs, onFollow, onUnfollow, onChat }) => {
+const ClubDirectory = ({ users, followedClubs, onFollow, onUnfollow, onChat }) => {
     const [showAll, setShowAll] = useState(false);
-    const displayedUsers = showAll ? users : users.slice(0, 4);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const filteredClubs = users.filter(club =>
+        club.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        club.fullName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const displayedClubs = showAll ? filteredClubs : filteredClubs.slice(0, 5);
 
     return (
-        <div className="hidden lg:flex flex-col w-[350px] fixed right-0 top-0 h-screen bg-transparent z-sidebar px-6 py-8 pointer-events-none">
-            <div className="pointer-events-auto space-y-10 custom-scrollbar overflow-y-auto h-full pr-2 mask-fade-bottom">
+        <div className="hidden xl:flex flex-col w-[380px] fixed right-0 top-0 h-screen bg-transparent z-sidebar px-8 py-10 pointer-events-none">
+            <div className="pointer-events-auto space-y-12 custom-scrollbar overflow-y-auto h-full pr-2 mask-fade-bottom">
 
-                {/* Search */}
-                <div className="aero-glass rounded-[32px] p-2 pr-6 flex items-center group transition-all duration-700 hover:shadow-indigo-500/10 border border-white/5 relative overflow-hidden mb-4">
+                {/* Search Bar */}
+                <div className="aero-glass rounded-[28px] p-1.5 flex items-center group transition-all duration-700 hover:shadow-indigo-500/10 border border-white/5 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="w-14 h-14 bg-white/5 rounded-[24px] flex items-center justify-center text-white/20 group-focus-within:text-indigo-400 group-focus-within:bg-indigo-500/10 transition-all ml-1 relative z-10 border border-white/5"><Search size={22} /></div>
-                    <input type="text" placeholder="Search Frequency..." className="bg-transparent border-none outline-none ml-4 text-sm w-full font-black text-white placeholder:text-white/20 font-outfit relative z-10 uppercase tracking-tight" />
+                    <div className="w-11 h-11 bg-white/5 rounded-2xl flex items-center justify-center text-white/20 group-focus-within:text-indigo-400 group-focus-within:bg-indigo-500/10 transition-all ml-1 relative z-10 border border-white/5">
+                        <Search size={20} />
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Search Clubs..."
+                        className="bg-transparent border-none outline-none ml-4 text-sm w-full font-bold text-white placeholder:text-white/20 font-outfit relative z-10"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
                 </div>
 
-                {users.length > 0 && (
-                    <div className="aero-glass rounded-[48px] p-8 border border-white/5 shadow-2xl relative overflow-hidden group/discovery floating-card">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-[80px] -mr-16 -mt-16 group-hover/discovery:scale-150 transition-transform duration-1000"></div>
-                        <div className="flex justify-between items-center mb-10 relative z-10">
-                            <div>
-                                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] font-outfit">Discovery</p>
-                                <h3 className="font-black text-white text-xl uppercase tracking-tighter mt-1 font-outfit">New Vibes</h3>
-                            </div>
-                            {users.length > 4 && (
-                                <button onClick={() => setShowAll(!showAll)} className="w-12 h-12 rounded-2xl aero-glass border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all text-xs font-black">
-                                    {showAll ? <ArrowRight size={20} className="rotate-180" /> : <Plus size={20} />}
-                                </button>
-                            )}
-                        </div>
-                        <div className="space-y-7 relative z-10">
-                            {displayedUsers.map(user => (
-                                <div key={user.id} className="flex items-center justify-between group/user cursor-pointer">
-                                    <div className="flex items-center gap-4">
-                                        <div className="relative p-0.5 rounded-[20px] bg-white/5 border border-white/10 group-hover/user:bg-indigo-500 group-hover/user:border-indigo-400 transition-all duration-500">
-                                            <img src={user.avatar} className="w-11 h-11 rounded-[18px] object-cover" />
-                                        </div>
-                                        <div className="leading-tight">
-                                            <p className="font-black text-sm text-white/90 truncate w-32 font-outfit tracking-tight group-hover/user:text-indigo-400 transition-colors">{user.username}</p>
-                                            <p className="text-[10px] text-white/30 font-black uppercase tracking-widest truncate w-32 font-outfit">Club Entity</p>
-                                        </div>
-                                    </div>
-                                    <button onClick={() => onFollow(user.id)} className="w-9 h-9 flex items-center justify-center bg-white/5 text-white/40 rounded-xl hover:bg-white hover:text-black hover:scale-110 active:scale-95 transition-all shadow-xl"><Plus size={18} /></button>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                {/* Club Discovery Section */}
+                <div className="aero-glass rounded-[40px] p-8 border border-white/5 shadow-2xl relative overflow-hidden group/discovery">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-[80px] -mr-16 -mt-16 group-hover/discovery:scale-150 transition-transform duration-1000"></div>
 
-                {/* Radio Schedule Widget */}
-                <div className="aero-glass rounded-[48px] p-8 border border-white/5 shadow-2xl group/radio floating-card overflow-hidden relative">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 rounded-full blur-[80px] -mr-16 -mt-16 group-hover/radio:scale-150 transition-transform duration-1000"></div>
-                    <div className="flex items-center gap-6 mb-10 relative z-10">
-                        <div className="w-16 h-16 bg-gradient-to-tr from-rose-500 to-orange-600 rounded-[28px] flex items-center justify-center text-white shadow-3xl shadow-rose-500/20 group-hover:rotate-12 transition-transform duration-700 border border-white/10">
-                            <Radio size={32} />
-                        </div>
+                    <div className="flex justify-between items-center mb-8 relative z-10">
                         <div>
-                            <p className="text-[10px] font-black text-rose-500 uppercase tracking-[0.4em] animate-pulse font-outfit">Air Frequency</p>
-                            <h3 className="font-black text-white text-xl uppercase tracking-tighter mt-1 font-outfit">Live Schedule</h3>
+                            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] font-outfit">Discovery</p>
+                            <h3 className="font-black text-white text-xl uppercase tracking-tighter mt-1 font-outfit">All Clubs</h3>
                         </div>
+                        {filteredClubs.length > 5 && (
+                            <button
+                                onClick={() => setShowAll(!showAll)}
+                                className="px-4 py-2 rounded-xl aero-glass border-white/10 text-white/40 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest"
+                            >
+                                {showAll ? 'Hide' : 'View All'}
+                            </button>
+                        )}
                     </div>
-                    <div className="space-y-4 relative z-10">
-                        {[
-                            { time: '12 PM', show: 'The Buzz', rj: 'Vikram', active: true },
-                            { time: '02 PM', show: 'Uncut', rj: 'Sneha', active: false },
-                            { time: '04 PM', show: 'Lofi', rj: 'Auto', active: false }
-                        ].map((item, i) => (
-                            <div key={i} className={`flex items-center gap-5 p-5 rounded-[28px] transition-all duration-500 cursor-pointer border ${item.active ? 'bg-white/10 border-white/20 shadow-2xl shadow-black/20' : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10'}`}>
-                                <div className={`text-[10px] font-black w-14 font-outfit tracking-widest ${item.active ? 'text-rose-400' : 'text-white/20'}`}>{item.time}</div>
-                                <div className="flex-1">
-                                    <p className={`text-[14px] font-black font-outfit tracking-tight leading-none mb-1.5 ${item.active ? 'text-white' : 'text-white/60'}`}>{item.show}</p>
-                                    <p className={`text-[9px] font-black uppercase tracking-[0.2em] ${item.active ? 'text-rose-400/60' : 'text-white/20'}`}>RJ {item.rj}</p>
+
+                    <div className="space-y-6 relative z-10">
+                        {displayedClubs.map(club => (
+                            <div key={club.id} className="flex items-center justify-between group/club cursor-pointer">
+                                <div className="flex items-center gap-4">
+                                    <div className="relative p-0.5 rounded-[18px] bg-white/5 border border-white/10 group-hover/club:bg-indigo-500/20 group-hover/club:border-indigo-400 transition-all duration-500 shadow-lg">
+                                        <img src={club.avatar} className="w-12 h-12 rounded-[16px] object-cover" />
+                                    </div>
+                                    <div className="leading-tight">
+                                        <p className="font-black text-[14px] text-white/90 truncate w-32 font-outfit tracking-tight group-hover/club:text-indigo-400 transition-colors uppercase">{club.username.split('_')[0]}</p>
+                                        <p className="text-[9px] text-white/30 font-black uppercase tracking-widest truncate w-32 font-outfit">{club.fullName.split('(')[0]}</p>
+                                    </div>
                                 </div>
-                                {item.active && <div className="relative flex items-center justify-center">
-                                    <div className="w-2 h-2 bg-rose-500 rounded-full animate-ping absolute"></div>
-                                    <div className="w-2 h-2 bg-rose-500 rounded-full relative"></div>
-                                </div>}
+                                <button
+                                    onClick={() => onFollow(club.id)}
+                                    className="w-10 h-10 flex items-center justify-center bg-white/5 text-white/40 rounded-xl hover:bg-white hover:text-black hover:scale-110 active:scale-95 transition-all shadow-xl"
+                                >
+                                    <Plus size={18} />
+                                </button>
                             </div>
                         ))}
+                        {filteredClubs.length === 0 && (
+                            <p className="text-center py-4 text-white/20 text-[10px] font-black uppercase tracking-widest leading-relaxed italic">No clubs matching search</p>
+                        )}
                     </div>
                 </div>
 
-                {/* Following Feed */}
+                {/* Followed Clubs Section */}
                 {followedClubs.length > 0 && (
-                    <div className="aero-glass rounded-[48px] p-8 shadow-2xl relative overflow-hidden group/circle floating-card border border-white/5">
+                    <div className="aero-glass rounded-[40px] p-8 shadow-2xl relative overflow-hidden group/circle border border-white/5">
                         <div className="absolute top-0 right-0 w-40 h-40 bg-indigo-500/5 rounded-full blur-[100px] -mr-20 -mt-20 group-hover/circle:scale-150 transition-transform duration-1000"></div>
-                        <div className="flex items-center gap-5 mb-10 relative z-10">
-                            <div className="w-12 h-12 rounded-2xl aero-glass border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-xl"><Heart size={24} className="fill-indigo-500" /></div>
+
+                        <div className="flex items-center gap-5 mb-8 relative z-10">
+                            <div className="w-12 h-12 rounded-[18px] bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-xl">
+                                <Heart size={24} className="fill-indigo-500" />
+                            </div>
                             <div>
                                 <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] font-outfit">Your Synergy</p>
-                                <h3 className="font-black text-white text-xl uppercase tracking-tighter mt-1 font-outfit">Circle</h3>
+                                <h3 className="font-black text-white text-xl uppercase tracking-tighter mt-1 font-outfit">Member Of</h3>
                             </div>
                         </div>
-                        <div className="space-y-7 relative z-10">
+
+                        <div className="space-y-6 relative z-10">
                             {followedClubs.map(club => (
                                 <div key={club.id} className="flex items-center justify-between group cursor-pointer" onClick={() => onChat(club)}>
                                     <div className="flex items-center gap-4">
-                                        <div className="relative p-0.5 bg-white/5 rounded-2xl border border-white/10 group-hover:bg-indigo-500 group-hover:border-indigo-400 transition-all duration-500">
-                                            <img src={club.avatar} className="w-11 h-11 rounded-[18px] object-cover" />
-                                            <div className="absolute -bottom-1 -right-1 bg-emerald-500 w-3.5 h-3.5 rounded-full border-4 border-[#030304] shadow-lg"></div>
+                                        <div className="relative p-0.5 bg-white/5 rounded-[18px] border border-white/10 group-hover:bg-indigo-500/20 group-hover:border-indigo-400 transition-all duration-500 shadow-lg">
+                                            <img src={club.avatar} className="w-12 h-12 rounded-[16px] object-cover" />
+                                            <div className="absolute -bottom-1 -right-1 bg-emerald-500 w-3.5 h-3.5 rounded-full border-[3px] border-[#0a0a0c] shadow-lg"></div>
                                         </div>
                                         <div className="leading-tight">
-                                            <p className="font-black text-sm text-white/90 truncate w-32 group-hover:translate-x-1 transition-transform font-outfit">{club.username}</p>
-                                            <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mt-0.5">Connected</p>
+                                            <p className="font-black text-[14px] text-white/90 truncate w-32 group-hover:translate-x-1 transition-transform font-outfit uppercase">{club.username.split('_')[0]}</p>
+                                            <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mt-0.5 italic">Synced Active</p>
                                         </div>
                                     </div>
-                                    <div className="w-10 h-10 bg-white/5 rounded-2xl flex items-center justify-center text-white/20 group-hover:bg-white group-hover:text-black hover:scale-110 active:scale-95 transition-all shadow-xl border border-white/5"><MessageCircle size={18} /></div>
+                                    <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-white/20 group-hover:bg-white group-hover:text-black hover:scale-110 active:scale-95 transition-all shadow-xl border border-white/5">
+                                        <MessageCircle size={18} />
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     </div>
                 )}
 
-                <div className="pt-8 pb-12 text-center relative z-10 px-6 opacity-30">
-                    <p className="text-[10px] text-white font-black uppercase tracking-[0.8em] font-outfit">BMU RADIO PORTAL</p>
+                <div className="pt-10 pb-16 text-center opacity-10">
+                    <p className="text-[9px] text-white font-black uppercase tracking-[0.8em] font-outfit leading-relaxed">BMU STUDENT PORTAL • CONNECTED SECURE</p>
                 </div>
             </div>
         </div>
@@ -1430,18 +1463,21 @@ function App() {
     if (!isAuthenticated) return <LoginPortal onLogin={handleLogin} />;
 
     return (
-        <div className="min-h-screen relative text-slate-900 font-sans flex justify-center overflow-x-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50">
-            {/* Subtle light background pattern */}
-            <div className="fixed inset-0 opacity-30 z-background pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(99,102,241,0.1) 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>
-            <div className="blob blob-1"></div>
-            <div className="blob blob-2"></div>
-            <div className="blob blob-3"></div>
+        <div className="min-h-screen relative text-slate-100 font-sans flex justify-center overflow-x-hidden bg-[#0a0a0c]">
+            {/* Immersive Deep Background */}
+            <div className="fixed inset-0 z-background pointer-events-none overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(99,102,241,0.08),transparent_50%),radial-gradient(circle_at_0%_100%,rgba(244,63,94,0.05),transparent_50%)]"></div>
+                <div className="absolute top-0 left-0 w-full h-full opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0)', backgroundSize: '60px 60px' }}></div>
+            </div>
 
-            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} currentUser={currentUser} onLogout={() => setIsAuthenticated(false)} />
+            <div className="blob blob-1 opacity-20"></div>
+            <div className="blob blob-2 opacity-10"></div>
 
-            <main className="w-full md:max-w-xl lg:max-w-2xl md:ml-28 lg:ml-80 lg:mr-96 min-h-screen bg-transparent relative z-0 pb-32 md:pb-24 px-4 md:px-0">
+            <LeftSidebar activeTab={activeTab} setActiveTab={setActiveTab} currentUser={currentUser} onLogout={() => setIsAuthenticated(false)} />
+
+            <main className="w-full xl:max-w-4xl lg:ml-72 xl:mr-[380px] min-h-screen bg-transparent relative z-0 pb-32 md:pb-24 px-4 md:px-10">
                 {activeTab === 'home' && (
-                    <div className="max-w-2xl mx-auto space-y-6 pt-6">
+                    <div className="max-w-3xl mx-auto space-y-10 pt-10">
                         <StoryBar
                             stories={campusStories}
                             isAdmin={isAdmin}
@@ -1454,16 +1490,19 @@ function App() {
                                 onPost={(Data) => {
                                     const newPost = {
                                         id: Date.now(),
-                                        userId: currentUser.id,
-                                        user: currentUser,
-                                        content: Data.text,
+                                        userId: currentUser.email,
+                                        username: currentUser.username,
+                                        fullName: currentUser.fullName,
+                                        avatar: currentUser.avatar,
+                                        text: Data.text,
                                         image: Data.image,
+                                        video: Data.video,
                                         likes: 0,
                                         comments: [],
                                         timestamp: Date.now()
                                     };
                                     db.collection('posts').add(newPost);
-                                    showNotification('Posted!');
+                                    showNotification('Pulse Broadcasted! 📡');
                                 }}
                                 user={currentUser}
                             />
@@ -1525,73 +1564,82 @@ function App() {
                 )}
 
                 {activeTab === 'events' && (
-                    <EventsView
-                        events={campusEvents}
-                        isAdmin={isAdmin}
-                        onAddEvent={(newEv) => {
-                            db.collection('events').add(newEv);
-                            showNotification("Event Scheduled! 📅");
-                        }}
-                    />
+                    <div className="pt-10">
+                        <EventsView
+                            events={campusEvents}
+                            isAdmin={isAdmin}
+                            onAddEvent={(newEv) => {
+                                db.collection('events').add(newEv);
+                                showNotification("Event Scheduled! 📅");
+                            }}
+                        />
+                    </div>
                 )}
 
                 {activeTab === 'explore' && (
-                    <div className="max-w-2xl mx-auto pt-12">
-                        <div className="text-center py-24 px-6 bg-white/40 backdrop-blur-md rounded-[40px] border border-slate-100">
-                            <div className="w-20 h-20 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-indigo-100/50">
-                                <Search size={36} className="text-indigo-500" />
+                    <div className="max-w-3xl mx-auto pt-24 text-center">
+                        <div className="aero-glass rounded-[64px] border border-white/5 p-24 group overflow-hidden relative shadow-3xl">
+                            <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/5 rounded-full blur-[150px] -mr-48 -mt-48 group-hover:scale-150 transition-all duration-1000"></div>
+                            <div className="w-32 h-32 bg-indigo-500/10 rounded-[40px] flex items-center justify-center mx-auto mb-12 shadow-3xl group-hover:rotate-12 transition-all duration-700">
+                                <Search size={56} className="text-indigo-500" />
                             </div>
-                            <h3 className="font-black text-slate-900 text-2xl font-outfit mb-2">Explore BMU Clubs</h3>
-                            <p className="text-slate-500 text-sm font-medium">Discover 20+ active communities on campus</p>
+                            <h3 className="font-black text-white text-5xl font-outfit mb-6 tracking-tighter uppercase leading-none">Explore<br /><span className="premium-gradient-text tracking-normal">Communities</span></h3>
+                            <p className="text-white/30 text-xs font-black uppercase tracking-[0.5em] mt-8">Discover 20+ active club entities</p>
                         </div>
                     </div>
                 )}
 
                 {activeTab === 'notifications' && (
-                    <div className="max-w-2xl mx-auto pt-8 space-y-4">
-                        <div className="px-2 mb-6">
-                            <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-2 font-outfit">Updates</p>
-                            <h2 className="text-3xl font-black text-slate-900 font-outfit tracking-tight">Campus Alerts</h2>
+                    <div className="max-w-3xl mx-auto pt-16 space-y-10">
+                        <div className="px-4">
+                            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.5em] mb-4 font-outfit">Real-time Modulation</p>
+                            <h2 className="text-6xl font-black text-white font-outfit tracking-tighter leading-none uppercase">Campus<br /><span className="premium-gradient-text tracking-normal">Alerts</span></h2>
                         </div>
 
-                        <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-6 rounded-[28px] border border-indigo-100 flex gap-4 shadow-sm hover:shadow-md transition-shadow">
-                            <div className="w-10 h-10 bg-indigo-500 rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-indigo-200">
-                                <AlertCircle className="text-white" size={20} />
-                            </div>
-                            <div>
-                                <p className="text-sm font-black text-slate-900 font-outfit mb-1">New Radio Show</p>
-                                <p className="text-xs text-indigo-700 font-medium leading-relaxed">RJ Vikram is live now with "The Midnight Buzz"</p>
+                        <div className="space-y-6">
+                            <div className="aero-glass p-10 rounded-[48px] border border-indigo-500/20 flex gap-8 shadow-3xl hover:border-indigo-500/50 transition-all group overflow-hidden relative">
+                                <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-[80px] -mr-24 -mt-24"></div>
+                                <div className="w-16 h-16 bg-indigo-600 rounded-3xl flex items-center justify-center shrink-0 shadow-2xl relative z-10">
+                                    <Radio className="text-white animate-pulse" size={32} />
+                                </div>
+                                <div className="relative z-10">
+                                    <p className="text-xl font-black text-white font-outfit mb-2 uppercase tracking-tight">Signal Detected</p>
+                                    <p className="text-xs text-indigo-400 font-black uppercase tracking-widest leading-relaxed">RJ Vikram is live now on the Midnight Frequency</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 )}
 
                 {activeTab === 'profile' && (
-                    <div className="max-w-2xl mx-auto pt-16">
-                        <div className="text-center py-20 px-10 aero-glass rounded-[56px] border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.1)] relative overflow-hidden group/profile">
-                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-0 group-hover/profile:opacity-100 transition-opacity duration-1000"></div>
-                            <div className="relative inline-block mb-10">
-                                <div className="absolute inset-0 bg-indigo-500 blur-3xl opacity-20 animate-pulse"></div>
-                                <img src={currentUser.avatar} className="w-40 h-40 rounded-[48px] border-4 border-white shadow-3xl object-cover relative z-10 hover:scale-105 transition-transform duration-700" />
-                                <div className="absolute -bottom-3 -right-3 w-12 h-12 bg-green-500 rounded-[20px] border-4 border-white shadow-2xl z-20 flex items-center justify-center">
-                                    <div className="w-3 h-3 bg-white rounded-full animate-ping"></div>
+                    <div className="max-w-3xl mx-auto pt-24 text-center">
+                        <div className="aero-glass rounded-[64px] border border-white/5 p-20 shadow-3xl group relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+                            <div className="relative inline-block mb-12">
+                                <div className="absolute inset-0 bg-indigo-500 blur-[80px] opacity-20 animate-pulse"></div>
+                                <div className="relative p-1.5 rounded-[56px] bg-gradient-to-tr from-indigo-500 via-purple-500 to-rose-500 shadow-[0_0_50px_rgba(99,102,241,0.3)]">
+                                    <img src={currentUser.avatar} className="w-48 h-48 rounded-[52px] border-4 border-[#0a0a0c] object-cover relative z-10 group-hover:scale-105 transition-transform duration-1000" />
+                                </div>
+                                <div className="absolute -bottom-4 -right-4 w-16 h-16 bg-emerald-500 rounded-[24px] border-[6px] border-[#0a0a0c] shadow-2xl z-20 flex items-center justify-center">
+                                    <div className="w-4 h-4 bg-white rounded-full animate-ping absolute"></div>
+                                    <div className="w-4 h-4 bg-white rounded-full relative"></div>
                                 </div>
                             </div>
-                            <h2 className="text-4xl font-black text-slate-900 font-outfit mb-3 tracking-tighter uppercase">{currentUser.username}</h2>
-                            <p className="text-indigo-600 font-black text-xs uppercase tracking-[0.4em] mb-8">Synchronized • BMU Frequency</p>
+                            <h2 className="text-6xl font-black text-white font-outfit mb-4 tracking-tighter uppercase leading-none">{currentUser.username}</h2>
+                            <p className="text-indigo-400 font-black text-[10px] uppercase tracking-[0.6em] mb-12">Universal Hub • Frequency 4.0</p>
 
-                            <div className="grid grid-cols-3 gap-6 max-w-sm mx-auto">
-                                <div className="p-6 aero-glass rounded-[32px] border-white/10">
-                                    <p className="text-2xl font-black text-slate-900 leading-none mb-1">128</p>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pulses</p>
+                            <div className="grid grid-cols-3 gap-8 max-w-lg mx-auto">
+                                <div className="p-8 aero-glass rounded-[40px] border border-white/10 group/stat">
+                                    <p className="text-4xl font-black text-white leading-none mb-2 font-outfit group-hover:text-indigo-400 transition-colors">128</p>
+                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Pulses</p>
                                 </div>
-                                <div className="p-6 aero-glass rounded-[32px] border-white/10">
-                                    <p className="text-2xl font-black text-slate-900 leading-none mb-1">4.2k</p>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Vibes</p>
+                                <div className="p-8 aero-glass rounded-[40px] border border-white/10 group/stat">
+                                    <p className="text-4xl font-black text-white leading-none mb-2 font-outfit group-hover:text-purple-400 transition-colors">4.2k</p>
+                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Echoes</p>
                                 </div>
-                                <div className="p-6 aero-glass rounded-[32px] border-white/10">
-                                    <p className="text-2xl font-black text-slate-900 leading-none mb-1">56</p>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Circles</p>
+                                <div className="p-8 aero-glass rounded-[40px] border border-white/10 group/stat">
+                                    <p className="text-4xl font-black text-white leading-none mb-2 font-outfit group-hover:text-rose-400 transition-colors">56</p>
+                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Circles</p>
                                 </div>
                             </div>
                         </div>
@@ -1840,7 +1888,7 @@ function App() {
                 </div>
             )}
 
-            <RightSidebar users={users} followedClubs={followedClubs} onFollow={handleFollow} onUnfollow={handleUnfollow} onChat={setActiveChat} />
+            <ClubDirectory users={users} followedClubs={followedClubs} onFollow={handleFollow} onUnfollow={handleUnfollow} onChat={setActiveChat} />
 
             {activeChat && <ChatWindow club={activeChat} onClose={() => setActiveChat(null)} currentUser={currentUser} />}
 
