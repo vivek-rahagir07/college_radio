@@ -91,6 +91,7 @@
         const TrendingUp = (props) => <Icon {...props}><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" /></Icon>;
         const Plus = (props) => <Icon {...props}><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></Icon>;
         const Layers = (props) => <Icon {...props}><polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 17 12 22 22 17" /><polyline points="2 12 12 17 22 12" /></Icon>;
+        const Trash2 = (props) => <Icon {...props}><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></Icon>;
 
         // --- MOCK DATA ---
         const INITIAL_USER_TEMPLATE = {
@@ -157,62 +158,45 @@
                 localStorage.setItem(storageKey, JSON.stringify(messages));
                 scrollToBottom();
             }, [messages]);
-
-            // Simulation: Ambient messages from "other students"
+            // Firestore listener for messages
             useEffect(() => {
-                const ambientUsers = ['Rahul S.', 'Priya Kapoor', 'Ankit M.', 'Sneha', 'Vikram', 'Dheeraj'];
-                const ambientPrompts = [
-                    "Anyone knows when the next meeting is?",
-                    "That last event was fire! 🔥",
-                    "Hey everyone!",
-                    "Is there a workshop this weekend?",
-                    "Check out the new announcement on the portal.",
-                    "Glad to be part of this club!",
-                    "Can we join even if we're from different departments?"
-                ];
+                const chatId = club.id;
+                const unsubscribe = db.collection('chats')
+                    .doc(chatId)
+                    .collection('messages')
+                    .orderBy('timestamp', 'asc')
+                    .onSnapshot(snapshot => {
+                        const msgs = snapshot.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        }));
+                        setMessages(msgs);
+                        scrollToBottom();
+                    });
 
-                const interval = setInterval(() => {
-                    if (Math.random() > 0.7) {
-                        const randomUser = ambientUsers[Math.floor(Math.random() * ambientUsers.length)];
-                        const randomText = ambientPrompts[Math.floor(Math.random() * ambientPrompts.length)];
-
-                        setMessages(prev => [...prev, {
-                            id: `ambient_${Date.now()}`,
-                            sender: 'other',
-                            senderName: randomUser,
-                            text: randomText,
-                            timestamp: Date.now()
-                        }]);
-                    }
-                }, 15000);
-
-                return () => clearInterval(interval);
+                return () => unsubscribe();
             }, [club.id]);
 
-            const handleSend = (e) => {
+            const handleSend = async (e) => {
                 e.preventDefault();
                 if (!inputText.trim()) return;
 
-                const newMsg = {
-                    id: `user_${Date.now()}`,
-                    sender: 'me',
+                const msgData = {
+                    sender: 'user',
+                    senderId: currentUser.email,
                     senderName: currentUser.username,
                     text: inputText,
                     timestamp: Date.now()
                 };
-                setMessages(prev => [...prev, newMsg]);
-                setInputText('');
 
-                if (messages.length < 5) {
-                    setTimeout(() => {
-                        setMessages(prev => [...prev, {
-                            id: `admin_${Date.now()}`,
-                            sender: 'club',
-                            senderName: 'Admin',
-                            text: 'Thanks for reaching out! Feel free to ask anything here.',
-                            timestamp: Date.now()
-                        }]);
-                    }, 1500);
+                try {
+                    await db.collection('chats')
+                        .doc(club.id)
+                        .collection('messages')
+                        .add(msgData);
+                    setInputText('');
+                } catch (error) {
+                    console.error("Error sending message:", error);
                 }
             };
 
@@ -235,24 +219,27 @@
 
                     {/* Messages */}
                     <div className="flex-1 p-4 overflow-y-auto bg-transparent space-y-6 custom-scrollbar">
-                        {messages.map(msg => (
-                            <div key={msg.id} className={`flex flex-col ${msg.sender === 'me' ? 'items-end' : 'items-start'} animate-fade-in`}>
-                                {msg.sender !== 'me' && (
-                                    <span className="text-[9px] font-black text-indigo-400 ml-1 mb-1.5 px-1 uppercase tracking-[0.2em] font-outfit">
-                                        {msg.senderName}
-                                    </span>
-                                )}
-                                <div className={`max-w-[85%] p-3.5 rounded-2xl text-sm relative group font-medium leading-relaxed ${msg.sender === 'me'
-                                    ? 'bg-indigo-600 text-white rounded-tr-none shadow-lg shadow-indigo-500/10'
-                                    : 'bg-white/5 text-slate-200 border border-white/5 rounded-tl-none appearance-none'
-                                    }`}>
-                                    {msg.text}
-                                    <div className={`text-[8px] mt-1.5 font-bold uppercase tracking-widest opacity-30 ${msg.sender === 'me' ? 'text-right' : 'text-left'}`}>
-                                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {messages.map(msg => {
+                            const isMe = msg.senderId === currentUser.email;
+                            return (
+                                <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} animate-fade-in`}>
+                                    {!isMe && (
+                                        <span className="text-[9px] font-black text-indigo-400 ml-1 mb-1.5 px-1 uppercase tracking-[0.2em] font-outfit">
+                                            {msg.senderName}
+                                        </span>
+                                    )}
+                                    <div className={`max-w-[85%] p-3.5 rounded-2xl text-sm relative group font-medium leading-relaxed ${isMe
+                                        ? 'bg-indigo-600 text-white rounded-tr-none shadow-lg shadow-indigo-500/10'
+                                        : 'bg-white/5 text-slate-200 border border-white/5 rounded-tl-none appearance-none'
+                                        }`}>
+                                        {msg.text}
+                                        <div className={`text-[8px] mt-1.5 font-bold uppercase tracking-widest opacity-30 ${isMe ? 'text-right' : 'text-left'}`}>
+                                            {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                         <div ref={messagesEndRef} />
                     </div>
 
@@ -640,6 +627,26 @@
                 e.preventDefault();
                 setError('');
 
+                if (view === 'admin') {
+                    if (password === 'Bmu_1234') {
+                        setIsLoading(true);
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        setShowSuccess(true);
+                        setTimeout(() => {
+                            onLogin({
+                                username: 'admin',
+                                fullName: 'System Admin',
+                                avatar: 'https://images.unsplash.com/photo-1510915228340-29c85a43dcfe?w=150&h=150&fit=crop',
+                                isAdmin: true
+                            });
+                        }, 800);
+                        return;
+                    } else {
+                        setError('Incorrect Admin Password');
+                        return;
+                    }
+                }
+
                 if (view === 'register') {
                     if (!profilePhoto) {
                         setError('Please upload a profile photo');
@@ -842,23 +849,30 @@
                                     <div
                                         className="absolute top-1 bottom-1 transition-all duration-500 ease-out bg-white shadow-lg rounded-xl z-0"
                                         style={{
-                                            left: view === 'login' ? '4px' : 'calc(50% + 1px)',
-                                            width: 'calc(50% - 5px)'
+                                            left: view === 'login' ? '4px' : (view === 'register' ? 'calc(33.33% + 2px)' : 'calc(66.66% + 2px)'),
+                                            width: 'calc(33.33% - 4px)'
                                         }}
                                     ></div>
                                     <button
                                         onClick={() => { setView('login'); setError(''); }}
-                                        className={`flex-1 py-2 px-4 rounded-xl font-black text-[9px] uppercase tracking-[0.2em] transition-all duration-500 relative z-10 ${view === 'login' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'
+                                        className={`flex-1 py-1 px-4 rounded-xl font-black text-[8px] uppercase tracking-[0.1em] transition-all duration-500 relative z-10 ${view === 'login' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'
                                             }`}
                                     >
                                         Log In
                                     </button>
                                     <button
                                         onClick={() => { setView('register'); setError(''); }}
-                                        className={`flex-1 py-2 px-4 rounded-xl font-black text-[9px] uppercase tracking-[0.2em] transition-all duration-500 relative z-10 ${view === 'register' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'
+                                        className={`flex-1 py-1 px-4 rounded-xl font-black text-[8px] uppercase tracking-[0.1em] transition-all duration-500 relative z-10 ${view === 'register' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'
                                             }`}
                                     >
                                         Sign Up
+                                    </button>
+                                    <button
+                                        onClick={() => { setView('admin'); setError(''); }}
+                                        className={`flex-1 py-1 px-4 rounded-xl font-black text-[8px] uppercase tracking-[0.1em] transition-all duration-500 relative z-10 ${view === 'admin' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'
+                                            }`}
+                                    >
+                                        Admin
                                     </button>
                                 </div>
 
@@ -912,19 +926,21 @@
                                         )}
 
                                         <div className="space-y-4">
-                                            <div className="input-group-premium relative group/input">
-                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 text-slate-300 group-focus-within/input:text-indigo-500">
-                                                    <Mail size={16} />
+                                            {view !== 'admin' && (
+                                                <div className="input-group-premium relative group/input">
+                                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 text-slate-300 group-focus-within/input:text-indigo-500">
+                                                        <Mail size={16} />
+                                                    </div>
+                                                    <input
+                                                        type="email"
+                                                        placeholder="UNIVERSITY EMAIL"
+                                                        className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 outline-none focus:border-indigo-200 focus:bg-white transition-all text-slate-800 placeholder:text-slate-300 font-black text-[10px] tracking-widest"
+                                                        value={email}
+                                                        onChange={e => setEmail(e.target.value)}
+                                                        required={view !== 'admin'}
+                                                    />
                                                 </div>
-                                                <input
-                                                    type="email"
-                                                    placeholder="UNIVERSITY EMAIL"
-                                                    className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 outline-none focus:border-indigo-200 focus:bg-white transition-all text-slate-800 placeholder:text-slate-300 font-black text-[10px] tracking-widest"
-                                                    value={email}
-                                                    onChange={e => setEmail(e.target.value)}
-                                                    required
-                                                />
-                                            </div>
+                                            )}
 
                                             <div className="input-group-premium relative group/input">
                                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 text-slate-300 group-focus-within/input:text-indigo-500">
@@ -967,7 +983,7 @@
                                                     Access Granted
                                                 </span>
                                             ) : (
-                                                view === 'login' ? 'Authenticate' : 'Initiate Session'
+                                                view === 'login' ? 'Authenticate' : (view === 'register' ? 'Initiate Session' : 'Admin Unlock')
                                             )}
                                         </button>
 
@@ -1061,8 +1077,7 @@
             );
         };
 
-
-        const EventsView = ({ events, isAdmin, onAddEvent }) => {
+        const EventsView = ({ events, isAdmin, onAddEvent, onDelete }) => {
             const [showForm, setShowForm] = useState(false);
             const [formData, setFormData] = useState({ title: '', date: '', club: '', type: 'Fest', countdown: '' });
 
@@ -1146,7 +1161,15 @@
                             </div>
                         ) : (
                             events.map((event, idx) => (
-                                <div key={event.id} className={`glass-dark-app rounded-[24px] p-6 group hover:scale-[1.01] transition-luxury cursor-pointer border-white/5 animate-slide-up stagger-${(idx % 10) + 1}`}>
+                                <div key={event.id} className={`glass-dark-app rounded-[24px] p-6 group hover:scale-[1.01] transition-luxury cursor-pointer border-white/5 animate-slide-up stagger-${(idx % 10) + 1} relative`}>
+                                    {isAdmin && (
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); onDelete(event.docId); }}
+                                            className="absolute top-2 right-2 w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-slate-500 hover:bg-rose-500/20 hover:text-rose-500 transition-all z-10"
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    )}
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="space-y-2">
                                             <div className="flex items-center gap-2">
@@ -1353,14 +1376,16 @@
             // Handle Login
             const handleLogin = (userData) => {
                 setIsAuthenticated(true);
+                const isSystemAdmin = userData.isAdmin === true;
+
                 setCurrentUser({
                     username: userData.username || (userData.email ? userData.email.split('@')[0] : 'user'),
                     fullName: userData.fullName || userData.username || 'Student',
-                    email: userData.email,
+                    email: userData.email || 'admin@internal',
                     avatar: userData.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop',
-                    isAdmin: userData.email === 'vivek.yadav.25cse@bmu.edu.in'
+                    isAdmin: isSystemAdmin
                 });
-                setIsAdmin(userData.email === 'vivek.yadav.25cse@bmu.edu.in');
+                setIsAdmin(isSystemAdmin);
             };
 
             // Firestore Sync: Events
@@ -1605,6 +1630,12 @@
                                     db.collection('events').add(newEv);
                                     showNotification("Event Scheduled! 📅");
                                 }}
+                                onDelete={(eid) => {
+                                    if (window.confirm("Delete this event?")) {
+                                        db.collection('events').doc(eid).delete();
+                                        showNotification("Event removed");
+                                    }
+                                }}
                             />
                         )}
 
@@ -1685,10 +1716,25 @@
                                 <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/60 to-transparent flex items-center gap-3">
                                     <img src={activeStory.avatar} className="w-10 h-10 rounded-full border-2 border-white" />
                                     <div><p className="text-white font-bold text-sm">{activeStory.username}</p><p className="text-white/60 text-[10px]">Campus Moment • 2h ago</p></div>
-                                    <button className="ml-auto text-white" onClick={() => setActiveStory(null)}><X size={24} /></button>
+                                    <button className="ml-auto text-white p-2 hover:bg-white/10 rounded-full transition-colors" onClick={() => setActiveStory(null)}><X size={24} /></button>
                                 </div>
                                 <div className="w-full h-full flex flex-col items-center justify-center relative">
                                     <div className="absolute inset-0 opacity-40 bg-gradient-to-br from-blue-600 to-purple-600"></div>
+                                    {isAdmin && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (window.confirm("Delete this story?")) {
+                                                    db.collection('stories').doc(activeStory.docId).delete();
+                                                    setActiveStory(null);
+                                                    showNotification("Story deleted");
+                                                }
+                                            }}
+                                            className="absolute top-20 right-4 p-3 bg-rose-500/20 text-rose-500 rounded-2xl border border-rose-500/30 hover:bg-rose-500 hover:text-white transition-all z-20 group"
+                                        >
+                                            <Trash2 size={24} />
+                                        </button>
+                                    )}
                                     <Radio size={80} className="text-white relative z-10 animate-float" />
                                     <p className="text-white text-xl font-bold relative z-10 mt-6 px-10 text-center">{activeStory.moment}</p>
                                 </div>
